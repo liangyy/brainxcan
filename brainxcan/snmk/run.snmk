@@ -1,0 +1,138 @@
+from snmk_helper import *
+
+# initialization
+args_col_meta_sbxcan, args_col_meta_mr = fill_gwas_col_meta(config)
+args_signif_criteria = fill_sbxcan_signif_criteria(config)
+args_idp_cols, idp_weight_t1, idp_weight_dmri = fill_sbxcan_idp_weight(config)
+args_geno_cov, geno_cov_files = fill_sbxcan_geno_cov(config)
+_, ld_clump_yaml = fill_ld_clump_yaml(config)
+params_gwas_idp, gwas_idp_files = fill_gwas_idp(config)
+params_snp_bim, snp_bim_files = fill_snp_bim(config)
+
+# output files
+sbxcan = '{outdir}/{prefix}.sbrainxcan.csv'.format(**config)
+sbxcan_vis = [
+    '{outdir}/{prefix}.vis_t1.png',
+    '{outdir}/{prefix}.vis_dmri.png'
+]
+mr_vis = [
+    '{outdir}/{prefix}.{idp_name}.MR_vis.png', 
+    '{outdir}/{prefix}.{idp_name}.MR_sumstats.tsv'
+]
+
+
+rule SBrainXcan:
+    input:
+        sbxcan,
+        [ i.format(**config) for i in sbxcan_vis ],
+        aggregate_chkpnt
+
+rule SBrainXcanOnly:
+    input:
+        sbxcan
+
+rule SBrainXcanAndVis:
+    input:
+        [ i.format(**config) for i in sbxcan_vis ]
+
+rule SBrainXcanAndMR:
+    input:
+        sbxcan,
+        aggregate_chkpnt
+
+
+
+rule sbxcan_t1:
+    input:
+        config['gwas'],
+        idp_weight_t1,
+        geno_cov_files
+    output:
+        temp('{outdir}/{prefix}.sbrainxcan_t1.csv')
+    shell:
+        '{config[python_exe]} \
+           {config[brainxcan_path]}/brainxcan/sbxcan/run_sbrainxcan.py \
+           {args_geno_cov} \
+           {args_col_meta_sbxcan} \
+           --idp_weight {input[1]} {args_idp_cols} \
+           --output {output[0]}'
+
+rule sbxcan_dmri:
+    input:
+        config['gwas'],
+        idp_weight_dmri,
+        geno_cov_files
+    output:
+        temp('{outdir}/{prefix}.sbrainxcan_dmri.csv')
+    shell:
+        '{config[python_exe]} \
+           {config[brainxcan_path]}/brainxcan/sbxcan/run_sbrainxcan.py \
+           {args_geno_cov} \
+           {args_col_meta_sbxcan} \
+           --idp_weight {input[1]} {args_idp_cols} \
+           --output {output[0]}'
+
+rule sbxcan_merge:
+    input:
+        '{outdir}/{prefix}.sbrainxcan_dmri.csv',
+        '{outdir}/{prefix}.sbrainxcan_t1.csv'
+    output:
+        '{outdir}/{prefix}.sbrainxcan.csv'
+    shell:
+        'bash {config[brainxcan_path]}/brainxcan/snmk/merge_bxcan.sh \
+           {input[0]} {input[1]} \
+           {output[0]}'
+
+checkpoint sbxcan_signif:
+    input:
+        '{outdir}/{prefix}.sbrainxcan.csv'
+    output:
+        directory('{outdir}/{prefix}/tmp_signif')
+    shell:
+        '{config[python_exe]} \
+           {config[brainxcan_path]}/brainxcan/sbxcan/util/grab_signif.py \
+           {args_signif_criteria} \
+           --sbxcan {input[0]} \
+           --outdir {output[0]}'
+
+rule mr:
+    input:
+        ld = ld_clump_yaml,
+        gwas = config['gwas'],
+        idp_flag = '{outdir}/{prefix}/tmp_signif/{idp_name}.txt'
+        idp = gwas_idp_files,
+        snp = snp_bim_files
+    params:
+        idp_pattern = params_gwas_idp,
+        bim_pattern = params_snp_bim
+    output:
+        '{outdir}/{prefix}.MR.{idp_name}.rds'
+    shell:
+        '{config[rscript_exe]} \
+          {config[brainxcan_path]}/brainxcan/mr/run_mr_local.R \
+          --idp_gwas_pattern {params.idp_pattern} \
+          --snp_meta {params.bim_pattern} \
+          --ld_clump_yaml {input.ld} \
+          --gwas_file {input.gwas} \
+          {args_col_meta_mr} \
+          --idp {input.idp_flag} \
+          --output {output[0]}'
+
+rule mr_vis:
+    input:
+        '{outdir}/{prefix}.MR.{idp_name}.rds'
+    output:
+        '{outdir}/{prefix}.{idp_name}.MR_vis.png',
+        '{outdir}/{prefix}.{idp_name}.MR_sumstats.tsv'
+    shell:
+        'TODO'
+
+rule sbxcan_vis:
+    input:
+        '{outdir}/{prefix}.sbrainxcan.csv'
+    output:
+        '{outdir}/{prefix}.vis_t1.png',
+        '{outdir}/{prefix}.vis_dmri.png'
+    shell:
+        'TODO'
+            
