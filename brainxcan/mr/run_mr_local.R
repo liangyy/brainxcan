@@ -24,8 +24,8 @@ option_list <- list(
     make_option(c("-a", "--gwas_key_val_pairs"), type="character", default=NULL,
                 help="Specify the column names of GWAS summary statistics. It takes the format: colname_in_file:colname_in_script and separate pairs by `,`. Need to have variant_id, effect_allele, non_effect_allele, (effect_size, se) or (zscore, af, sample_size)",
                 metavar="character"),
-    make_option(c("-i", "--bfile"), type="character", default=NULL,
-                help="LD panel for LD clumping.",
+    make_option(c("-i", "--bfile_prefix"), type="character", default=NULL,
+                help="Prefix of the LD panel for LD clumping.",
                 metavar="character"),
     make_option(c("-p", "--plink_exe"), type="character", default=NULL,
                 help="PLINK executable for LD clumping calls.",
@@ -60,7 +60,7 @@ logging::basicConfig(level = opt$log_level)
 logging::loginfo('Loading LD clumping YAML.')
 ld_clump_param = yaml::read_yaml(opt$ld_clump_yaml)
 ld_clump_param$plink_executable = opt$plink_exe
-ld_clump_param$bfile = opt$bfile
+ld_clump_param$bfile = opt$bfile_prefix
 
 logging::loginfo('Loading phenotype GWAS.')
 df_gwas = load_pheno_gwas(opt$gwas_file, opt$gwas_key_val_pairs)
