@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import pathlib
 from collections import OrderedDict 
-from util.misc import read_table
+from brainxcan.sbxcan.util.misc import read_table
 
 BASE_PAIR = {
     'A': 'T',
@@ -288,8 +288,8 @@ if __name__ == '__main__':
         format = '%(asctime)s  %(message)s',
         datefmt = '%Y-%m-%d %I:%M:%S %p'
     )
-    from util.CovConstructor import CovMatrix
-    from util.susie_wrapper import run_susie_wrapper
+    from brainxcan.sbxcan.util.CovConstructor import CovMatrix
+    # from util.susie_wrapper import run_susie_wrapper
     from pystat import z2p
     
     logging.info('Loading GWAS.')
@@ -393,17 +393,17 @@ if __name__ == '__main__':
     beta_brainxcan = numer_b / np.power(S_D, 2)
     z_brainxcan = numer_z / S_D
    
-    logging.info('Step3: Running susieR.')
-    Sigma =  D / S_D[:, np.newaxis] / S_D[np.newaxis, ]
-    susie_pip, susie_cs = run_susie_wrapper(z_brainxcan, Sigma, params={'z_ld_weight': args.z_ld_weight})
+    # logging.info('Step3: Running susieR.')
+    # Sigma =  D / S_D[:, np.newaxis] / S_D[np.newaxis, ]
+    # susie_pip, susie_cs = run_susie_wrapper(z_brainxcan, Sigma, params={'z_ld_weight': args.z_ld_weight})
          
     logging.info('Saving outputs.')
     df_res = pd.DataFrame({
         'IDP': idp_names,
         'bhat': beta_brainxcan,
         'pval': z2p(z_brainxcan),
-        'pip': susie_pip,
-        'cs95': susie_cs
+        # 'pip': susie_pip,
+        # 'cs95': susie_cs
     })
     df_res.to_csv(args.output, index=False)
     

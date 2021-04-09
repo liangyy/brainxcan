@@ -1,0 +1,40 @@
+gwas: '/gpfs/data/im-lab/nas40t2/Data/SummaryResults/imputed_gwas_hg38_1.1/imputed_pgc.scz2.txt.gz'
+gwas_pop: 'EUR'
+datadir: ''
+
+# optional: default values are listed
+# no need to specify if you'd like to go with default
+
+# IDP prediction model type: ridge or elastic_net
+model_type: 'ridge'
+
+# IDP sets to use: original or residual (after PC adjustment)
+idp_type: 'original'
+
+# parameters to define signif BrainXcan results for MR
+signif_pval: 1e-5
+signif_max_idps: 10
+
+# parameters used in defining instrument in MR
+ld_clump_yaml: '{datadir}/mr/ld_clump.yaml'
+
+# path to R and Python     
+rscript_exe: 'Rscript' 
+python_exe: 'python'
+
+
+# ---------------------------- ABOUT DEPENDENT DATA ---------------------------#
+# specify dependent data separately
+# don't recommend changing typically
+# only need when you want to use customized data in a nasty way 
+
+# geno_cov_pattern: ''
+# idp_weights_pattern: ''
+# idp_gwas_pattern: ''
+# idp_gwas_snp_pattern: ''
+# idp_weights_cols: 
+#   snpid: ''
+#   effect_allele: ''
+#   non_effect_allele: ''
+#   chr: ''
+

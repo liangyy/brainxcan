@@ -1,13 +1,18 @@
 from snmk_helper import *
 
 # initialization
+check_required_args(config)
+check_datadir(config)
+fill_idp_type(config)
 args_col_meta_sbxcan, args_col_meta_mr = fill_gwas_col_meta(config)
 args_signif_criteria = fill_sbxcan_signif_criteria(config)
 args_idp_cols, idp_weight_t1, idp_weight_dmri = fill_sbxcan_idp_weight(config)
 args_geno_cov, geno_cov_files = fill_sbxcan_geno_cov(config)
-_, ld_clump_yaml = fill_ld_clump_yaml(config)
+ld_clump_yaml = fill_ld_clump_yaml(config)
 params_gwas_idp, gwas_idp_files = fill_gwas_idp(config)
-params_snp_bim, snp_bim_files = fill_snp_bim(config)
+args_snp_bim, snp_bim_files = fill_snp_bim(config)
+args_mr_ld_panel, mr_ld_panel_files = fill_mr_ld_panel(config)
+fill_exe(config)
 
 # output files
 sbxcan = '{outdir}/{prefix}.sbrainxcan.csv'.format(**config)
@@ -52,8 +57,8 @@ rule sbxcan_t1:
     shell:
         '{config[python_exe]} \
            {config[brainxcan_path]}/brainxcan/sbxcan/run_sbrainxcan.py \
-           {args_geno_cov} \
-           {args_col_meta_sbxcan} \
+           --genotype_covariance {args_geno_cov} \
+           --gwas {input[0]} {args_col_meta_sbxcan} \
            --idp_weight {input[1]} {args_idp_cols} \
            --output {output[0]}'
 
@@ -67,8 +72,8 @@ rule sbxcan_dmri:
     shell:
         '{config[python_exe]} \
            {config[brainxcan_path]}/brainxcan/sbxcan/run_sbrainxcan.py \
-           {args_geno_cov} \
-           {args_col_meta_sbxcan} \
+           --genotype_covariance {args_geno_cov} \
+           --gwas {input[0]} {args_col_meta_sbxcan} \
            --idp_weight {input[1]} {args_idp_cols} \
            --output {output[0]}'
 
@@ -99,23 +104,24 @@ rule mr:
     input:
         ld = ld_clump_yaml,
         gwas = config['gwas'],
-        idp_flag = '{outdir}/{prefix}/tmp_signif/{idp_name}.txt'
+        idp_flag = '{outdir}/{prefix}/tmp_signif/{idp_modality}_{idp_code}.txt'
         idp = gwas_idp_files,
         snp = snp_bim_files
-    params:
-        idp_pattern = params_gwas_idp,
-        bim_pattern = params_snp_bim
     output:
-        '{outdir}/{prefix}.MR.{idp_name}.rds'
+        '{outdir}/{prefix}.MR.{idp_modality}_{idp_code}.rds'
+    params:
+        gwas_idp = params_gwas_idp,
     shell:
         '{config[rscript_exe]} \
           {config[brainxcan_path]}/brainxcan/mr/run_mr_local.R \
-          --idp_gwas_pattern {params.idp_pattern} \
-          --snp_meta {params.bim_pattern} \
+          --idp_gwas_pattern {params.gwas_idp} \
+          --snp_meta {args_snp_bim} \
           --ld_clump_yaml {input.ld} \
           --gwas_file {input.gwas} \
           {args_col_meta_mr} \
-          --idp {input.idp_flag} \
+          --idp {wildcards.idp_code} \
+          --plink_exe {config[plink_exe]} \
+          --bfile {args_mr_ld_panel} \
           --output {output[0]}'
 
 rule mr_vis:

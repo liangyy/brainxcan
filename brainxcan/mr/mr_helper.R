@@ -69,8 +69,19 @@ impute_b_from_z = function(zscore, af, sample_size) {
   bhat = zscore / sqrt(2 * sample_size * af * (1 - af))
 }
 
-load_pheno_gwas = function(filename, yaml_path) {
-  col_yaml = yaml::read_yaml(yaml_path)
+key_val_pairs_to_yaml = function(str) {
+  pairs = strsplit(str, ',')[[1]]
+  out = list()
+  for(pp in pairs) {
+    tmp = strsplit(pp, ':')[[1]]
+    out[[tmp[1]]] = tmp[2]
+  }
+  out
+}
+
+load_pheno_gwas = function(filename, gwas_cols_key_val_pairs) {
+  # col_yaml = yaml::read_yaml(yaml_path)
+  col_yaml = key_val_pairs_to_yaml(gwas_cols_key_val_pairs) 
   df_gwas = data.table::fread(cmd = paste0('zcat ', filename), sep = '\t', data.table = F)
   col_yaml_cleaned = list()
   for(col in names(col_yaml)) {
