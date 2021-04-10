@@ -290,7 +290,7 @@ if __name__ == '__main__':
     )
     from brainxcan.sbxcan.util.CovConstructor import CovMatrix
     # from util.susie_wrapper import run_susie_wrapper
-    from pystat import z2p
+    from brainxcan.sbxcan.util.misc import z2p
     
     logging.info('Loading GWAS.')
     df_gwas = load_gwas(args.gwas)

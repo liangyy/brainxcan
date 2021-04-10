@@ -64,6 +64,8 @@ def fill_gwas_col_meta(config):
 
 def fill_sbxcan_signif_criteria(config):
     sh._fill_config_w_default_if_needed(config, default_params.BXCAN_SIGNIF)
+    config['signif_pval'] = float(config['signif_pval'])
+    config['signif_max_idps'] = int(config['signif_max_idps'])
     if config['signif_pval'] > 1 or config['signif_pval'] <= 0:
         raise ValueError('P-value cutoff should be in (0, 1].')
     if config['signif_max_idps'] < 0:
@@ -152,7 +154,7 @@ def fill_exe(config):
 
 def fill_ld_clump_yaml(config):
     sh._try_fill_config(config, 'ld_clump_yaml', default_params.LD_CLUMP_YAML)
-    sh._try_to_format(
+    config['ld_clump_yaml'] = sh._try_to_format(
         config['ld_clump_yaml'], 
         OrderedDict([('datadir', config['datadir'])])
     )

@@ -42,7 +42,7 @@ if __name__ == '__main__':
     logging.info('{} IDPs pass the criteria.'.format(df.shape[0]))
     
     if df.shape[0] > args.max_idps:
-        logging.info('Taking top {} IDPs.')
+        logging.info('Taking top {} IDPs.'.format(args.max_idps))
         # keep all ties 
         pval_last_to_select = df.iloc[:args.max_idps, :].pval.values[-1]
         df = df[ df.pval <= pval_last_to_select ].reset_index(drop=True)
@@ -55,7 +55,8 @@ if __name__ == '__main__':
     logging.info('Saving outputs.')
     for idp, modality in zip(df.IDP, df.modality):
         tmp = df[ df.IDP == idp ]
-        tmp.to_csv('{}/{}_{}.txt'.format(args.outdir, idp, modality))
+        tmp.to_csv('{}/{}_{}.txt'.format(args.outdir, modality.lower(), idp), index=False)
+
     
     
     logging.info('Done.')

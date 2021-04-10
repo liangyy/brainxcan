@@ -6,10 +6,10 @@ if __name__ == '__main__':
     parser.add_argument('--dmri', help='''
         Input S-BrainXcan result for dMRI IDPs.
     ''')
-    parser.add_argument('--t1', type=float, help='''
+    parser.add_argument('--t1', help='''
         Input S-BrainXcan result for T1 IDPs.
     ''')
-    parser.add_argument('--Output', help='''
+    parser.add_argument('--output', help='''
         Output table.
     ''')
     args = parser.parse_args()

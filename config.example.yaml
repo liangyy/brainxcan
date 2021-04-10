@@ -1,18 +1,32 @@
-gwas: '/gpfs/data/im-lab/nas40t2/Data/SummaryResults/imputed_gwas_hg38_1.1/imputed_pgc.scz2.txt.gz'
-gwas_pop: 'EUR'
-snpid: 'rsid'
-effect_allele: 'effect_allele'
-non_effect_allele: 'non_effect_allele'
-zscore: 'zscore'
-sample_size: 'sample_size'
-allele_frequency: 'frequency'
-chr: 'chromsome'
-datadir: '/gpfs/data/im-lab/nas40t2/yanyul/data/brainxcan_data'
-outdir: 'output'
-prefix: 'test'
-brainxcan_path: '/gpfs/data/im-lab/nas40t2/yanyul/GitHub/brainxcan'
+# ------------------------- Input/Output paths ------------------------------- #
 
-# optional: default values are listed
+datadir: 'path to brainxcan data'
+outdir: 'output directory'
+prefix: 'output prefix'
+brainxcan_path: 'path to brainxcan repo'
+
+
+# ------------------------- GWAS formatting information ---------------------- #
+
+gwas: 'path to GWAS file (format: csv(.gz), tsv(.gz), parquet'
+gwas_pop: 'ancestry population of the gwas (used for MR). Options are populations in 1000G: AFR, AMR, EAS, EUR, SAS'
+snpid: 'column name of GWAS SNP RSID'
+effect_allele: 'column name of GWAS effect allele'
+non_effect_allele: 'column name of GWAS non-effect allele'
+chr: 'column name of chromosome'
+
+# option 1 (high priority)
+# Note: we assume effect is centered around zero, so use log(OR) for case control study
+effect_size: 'column name of GWAS effect size'
+effect_size_se: 'column name of GWAS effect size standard error'
+
+# option 2
+zscore: 'column name of GWAS z-score'
+sample_size: 'column name of GWAS sample size'
+allele_frequency: 'column name of allele frequency'
+
+
+# ------------------------- Optional: default values are listed -------------- #
 # no need to specify if you'd like to go with default
 
 # IDP prediction model type: ridge or elastic_net
@@ -33,7 +47,7 @@ rscript_exe: 'Rscript'
 python_exe: 'python'
 
 
-# ---------------------------- ABOUT DEPENDENT DATA ---------------------------#
+# -------------------------- ABOUT DEPENDENT DATA --------------------------- #
 # specify dependent data separately
 # don't recommend changing typically
 # only need when you want to use customized data in a nasty way 
