@@ -3,8 +3,9 @@ from brainxcan.snmk.snmk_helper import *
 # initialization
 check_required_args(config)
 check_datadir(config)
-fill_patterns(config)
 fill_idp_type(config)
+fill_model_type(config)
+fill_patterns(config)
 args_col_meta_sbxcan, args_col_meta_mr = fill_gwas_col_meta(config)
 args_signif_criteria = fill_sbxcan_signif_criteria(config)
 args_idp_cols, idp_weight_t1, idp_weight_dmri = fill_sbxcan_idp_weight(config)
@@ -29,24 +30,24 @@ mr_vis = [
 ]
 
 
-# rule SBrainXcan:
-#     input:
-#         sbxcan,
-#         [ i.format(**config) for i in sbxcan_vis ],
-#         aggregate_chkpnt
+rule SBrainXcan:
+    input:
+        sbxcan,
+        [ i.format(**config) for i in sbxcan_vis ],
+        aggregate_chkpnt
 
-# rule SBrainXcanOnly:
-#     input:
-#         sbxcan
+rule SBrainXcanOnly:
+    input:
+        sbxcan
 
-# rule SBrainXcanAndVis:
-#     input:
-#         [ i.format(**config) for i in sbxcan_vis ]
+rule SBrainXcanAndVis:
+    input:
+        [ i.format(**config) for i in sbxcan_vis ]
 
-# rule SBrainXcanAndMR:
-#     input:
-#         sbxcan,
-#         aggregate_chkpnt
+rule SBrainXcanAndMR:
+    input:
+        sbxcan,
+        aggregate_chkpnt
 
 
 
@@ -153,22 +154,4 @@ def aggregate_chkpnt(wildcards):
     return expand('{outdir}/{prefix}.{idp_name}.MR_vis.png',
            idp_name=glob_wildcards(os.path.join(checkpoint_output, '{idp_name}.txt')).idp_name)
 
-rule SBrainXcan:
-    input:
-        sbxcan,
-        [ i.format(**config) for i in sbxcan_vis ],
-        aggregate_chkpnt
-
-rule SBrainXcanOnly:
-    input:
-        sbxcan
-
-rule SBrainXcanAndVis:
-    input:
-        [ i.format(**config) for i in sbxcan_vis ]
-
-rule SBrainXcanAndMR:
-    input:
-        sbxcan,
-        aggregate_chkpnt
             

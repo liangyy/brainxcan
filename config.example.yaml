@@ -7,7 +7,7 @@ zscore: 'zscore'
 sample_size: 'sample_size'
 allele_frequency: 'frequency'
 chr: 'chromsome'
-datadir: ''
+datadir: '/gpfs/data/im-lab/nas40t2/yanyul/data/brainxcan_data'
 outdir: 'output'
 prefix: 'test'
 

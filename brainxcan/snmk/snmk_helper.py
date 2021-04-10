@@ -13,7 +13,7 @@ import brainxcan.snmk._snmk_helper as sh
 #            idp_name=glob_wildcards(os.path.join(checkpoint_output, '{idp_name}.txt')).idp_name)
 
 def check_required_args(config):
-    required = ['gwas', 'gwas_pop', 'datadir']
+    required = ['gwas', 'gwas_pop', 'datadir', 'chr', 'non_effect_allele', 'effect_allele', 'snpid', 'prefix']
     sh._check_list_all_in(required, config)
 
 def fill_gwas_col_meta(config):
@@ -131,7 +131,14 @@ def fill_patterns(config):
         list(default_params.IDP_WEIGHTS_COLS.keys()),
         config['idp_weights_cols']
     )
-
+    config['idp_weights_pattern'] = sh._try_to_format(
+        config['idp_weights_pattern'], 
+        OrderedDict([
+            ('datadir', config['datadir']),
+            ('idp_type', config['idp_type']),
+            ('model_type', config['model_type'])
+        ])
+    )
 def fill_exe(config):
     sh._try_fill_config(config, 'python_exe', default_params.PYTHON_EXE)
     sh._try_fill_config(config, 'rscript_exe', default_params.RSCRIPT_EXE)
