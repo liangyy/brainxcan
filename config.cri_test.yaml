@@ -1,4 +1,5 @@
-gwas: '/gpfs/data/im-lab/nas40t2/yanyul/GitHub/brainxcan/test.txt.gz'
+gwas: '/gpfs/data/im-lab/nas40t2/Data/SummaryResults/imputed_gwas_hg38_1.1/imputed_pgc.scz2.txt.gz'  
+# gwas: '/gpfs/data/im-lab/nas40t2/yanyul/GitHub/brainxcan/test.txt.gz'
 datadir: '/gpfs/data/im-lab/nas40t2/yanyul/data/brainxcan_data'
 outdir: 'output'
 prefix: 'test'
@@ -15,8 +16,8 @@ chr: 'chromosome'
 
 # model_type: 'ridge'
 # idp_type: 'original'
-# signif_pval: 1e-5
-signif_max_idps: 1
+signif_pval: 1e-8
+signif_max_idps: 5
 # ld_clump_yaml: '{datadir}/mr/ld_clump.yaml'
      
 rscript_exe: '/gpfs/data/im-lab/nas40t2/yanyul/softwares/miniconda2/envs/two_sample_mr/bin/Rscript' 

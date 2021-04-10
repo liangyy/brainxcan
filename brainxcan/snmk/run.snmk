@@ -36,13 +36,16 @@ rule sbxcan_t1:
         idp_weight_t1[1]
     output:
         temp('{outdir}/{prefix}.sbrainxcan_t1.csv')
+    log:
+        '{outdir}/logs/{prefix}.sbrainxcan_t1.log'
     shell:
-        '{config[python_exe]} \
+        'export PYTHONPATH={config[brainxcan_path]}:$PYTHONPATH; \
+         {config[python_exe]} \
            {config[brainxcan_path]}/brainxcan/sbxcan/run_sbrainxcan.py \
            --genotype_covariance {args_geno_cov} \
            --gwas {input[0]} {args_col_meta_sbxcan} \
            --idp_weight {input[1]} {args_idp_cols} \
-           --output {output[0]}'
+           --output {output[0]} > {log} 2>&1'
 
 rule sbxcan_dmri:
     input:
@@ -52,14 +55,16 @@ rule sbxcan_dmri:
         idp_weight_dmri[1]
     output:
         temp('{outdir}/{prefix}.sbrainxcan_dmri.csv')
+    log:
+        '{outdir}/logs/{prefix}.sbrainxcan_dmri.log'
     shell:
         'export PYTHONPATH={config[brainxcan_path]}:$PYTHONPATH; \
-        {config[python_exe]} \
+         {config[python_exe]} \
            {config[brainxcan_path]}/brainxcan/sbxcan/run_sbrainxcan.py \
            --genotype_covariance {args_geno_cov} \
            --gwas {input[0]} {args_col_meta_sbxcan} \
            --idp_weight {input[1]} {args_idp_cols} \
-           --output {output[0]}'
+           --output {output[0]} > {log} 2>&1'
 
 rule sbxcan_merge:
     input:
@@ -67,25 +72,29 @@ rule sbxcan_merge:
         '{outdir}/{prefix}.sbrainxcan_t1.csv'
     output:
         '{outdir}/{prefix}.sbrainxcan.csv'
+    log:
+        '{outdir}/logs/{prefix}.sbrainxcan.log'
     shell:
         '{config[python_exe]} \
            {config[brainxcan_path]}/brainxcan/snmk/merge_bxcan.py \
            --dmri {input[0]} \
            --t1 {input[1]} \
-           --output {output[0]}'
+           --output {output[0]} > {log} 2>&1'
 
 checkpoint sbxcan_signif:
     input:
         '{outdir}/{prefix}.sbrainxcan.csv'
     output:
-        directory('{outdir}/{prefix}/tmp_signif')
+        temp(directory('{outdir}/{prefix}/tmp_signif'))
+    log:
+        '{outdir}/logs/{prefix}.sbxcan_signif.log'
     shell:
         'mkdir -p {output[0]}; \
          {config[python_exe]} \
            {config[brainxcan_path]}/brainxcan/snmk/grab_signif.py \
            {args_signif_criteria} \
            --sbxcan {input[0]} \
-           --outdir {output[0]}'
+           --outdir {output[0]} > {log} 2>&1'
 
 rule mr:
     input:
@@ -95,7 +104,9 @@ rule mr:
         idp = gwas_idp_files,
         snp = snp_bim_files
     output:
-        '{outdir}/{prefix}.MR.{idp_modality}_{idp_code}.rds'
+        '{outdir}/{prefix}.{idp_modality}_{idp_code}.MR.rds'
+    log:
+        '{outdir}/logs/{prefix}.{idp_modality}_{idp_code}.MR.log'
     params:
         gwas_idp = params_gwas_idp,
     shell:
@@ -109,22 +120,24 @@ rule mr:
           --gwas_key_val_pairs {args_col_meta_mr} \
           --plink_exe {config[plink_exe]} \
           --bfile_prefix {args_mr_ld_panel} \
-          --output {output[0]}'
+          --output {output[0]} > {log} 2>&1'
 
 rule mr_vis:
     input:
-        '{outdir}/{prefix}.MR.{idp_modality}_{idp_code}.rds',
+        '{outdir}/{prefix}.{idp_modality}_{idp_code}.MR.rds',
         '{outdir}/{prefix}/tmp_signif/{idp_modality}_{idp_code}.txt'
     output:
         '{outdir}/{prefix}.{idp_modality}_{idp_code}.MR_vis.png',
         '{outdir}/{prefix}.{idp_modality}_{idp_code}.MR_sumstats.tsv'
+    log:
+        '{outdir}/logs/{prefix}.{idp_modality}_{idp_code}.MR_vis.log'
     shell:
         '{config[rscript_exe]} \
           {config[brainxcan_path]}/brainxcan/mr/run_mr_vis.R \
           --mr_rds {input[0]} \
           --bxcan {input[1]} \
           --output_plot {output[0]} \
-          --output_table {output[1]}'
+          --output_table {output[1]} > {log} 2>&1'
           # export R_SRC={config[brainxcan_path]}/brainxcan/mr; \
 
 rule sbxcan_vis:
