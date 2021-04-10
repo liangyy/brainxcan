@@ -180,6 +180,10 @@ def get_snpid_col(gwas_args_list):
             return tmp
 
 def impute_b_from_z(zscore, af, n):
+    if (n < 0).sum() > 0:
+        raise ValueError('There are sample size < 0')
+    if (af >= 1).sum() or (af <= 0).sum():
+        raise ValueError('There are af outside (0, 1).')
     se = 1 / np.sqrt(2 * n * af * (1 - af))
     bhat = zscore * se
     return bhat, se
@@ -303,6 +307,7 @@ if __name__ == '__main__':
     df_weight = load_idp(args.idp_weight)
     idp_names = list(df_weight.columns[4:])
     nidp = len(idp_names)
+    nsnp_total = (df_weight.iloc[:, 4:].values != 0).sum(axis=0)
     logging.info('IDP SNP = {} and number of IDPs = {}'.format(df_weight.shape[0], nidp))
     
     logging.info('Harmonizing GWAS and IDP weights.')
@@ -329,6 +334,7 @@ if __name__ == '__main__':
     D = np.zeros((nidp, nidp))
     numer_b = np.zeros((nidp))
     numer_z = np.zeros((nidp))
+    nsnp_used = np.zeros((nidp)).astype(int)
     for i in range(1, 23):
         
         df_gwas_sub = df_gwas[ df_gwas.chr == str(i) ].reset_index(drop=True)
@@ -361,6 +367,7 @@ if __name__ == '__main__':
         
         weight = df_weight_sub.iloc[:, 4 : ].to_numpy(copy=True)
         weight[np.isnan(weight)] = 0
+        nsnp_used += (weight != 0).sum(axis=0)
         
         b_gwas = df_gwas_sub.effect_size.to_numpy(copy=True)
         b_gwas[np.isnan(b_gwas)] = 0
@@ -387,6 +394,8 @@ if __name__ == '__main__':
         numer_b = numer_b[good_pheno]
         numer_z = numer_z[good_pheno]
         idp_names = list(np.array(idp_names)[good_pheno])
+        nsnp_used = nsnp_used[good_pheno]
+        nsnp_total = nsnp_total[good_pheno]
         
     logging.info('Step2: Computing marginal test.')
     S_D = np.sqrt(D.diagonal())
@@ -402,10 +411,12 @@ if __name__ == '__main__':
         'IDP': idp_names,
         'bhat': beta_brainxcan,
         'pval': z2p(z_brainxcan),
+        'nsnp_used': nsnp_used,
+        'nsnp_total': nsnp_total
         # 'pip': susie_pip,
         # 'cs95': susie_cs
     })
-    df_res.to_csv(args.output, index=False)
+    df_res.sort_values(by='pval').to_csv(args.output, index=False)
     
     logging.info('Done.')
     

@@ -36,6 +36,6 @@ if __name__ == '__main__':
     
     logging.info('Saving outputs.')
     df = pd.concat([df1, df2], axis=0)
-    df.to_csv(args.output, index=False)
+    df.sort_values(by='pval').to_csv(args.output, index=False)
     
     logging.info('Done.')
