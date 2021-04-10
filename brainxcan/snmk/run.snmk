@@ -145,14 +145,6 @@ def aggregate_chkpnt(wildcards, config):
     )
     return files
 
-rule collect_mr:
-    input:
-        # lambda wildcards: aggregate_chkpnt(wildcards, config)
-        aggregate_chkpnt
-    output:
-        '{outdir}/{prefix}.MR_output.txt'
-    shell:
-        'ls {input} > {output[0]}'
 
 rule SBrainXcan:
     input:
