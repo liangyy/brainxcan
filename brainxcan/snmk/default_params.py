@@ -7,7 +7,7 @@ PLINK_EXE = 'plink'
 LD_CLUMP_YAML = '{datadir}/mr/ld_clump.yaml'
 IDP_TYPE = [
     'original',  # default
-    ['orignal', 'residual']  # options 
+    ['original', 'residual']  # options 
 ]
 MODEL_TYPE = [ 
     'ridge', # default
@@ -21,15 +21,15 @@ IDP_GWAS_PATTERN = '{datadir}/idp_gwas/{idp_type}.{idp_modality}.chr{chr_num}/{i
 IDP_GWAS_SNP_PATTERN = '{datadir}/idp_gwas/snp_bim/chr{chr_num}.bim'
 MR_LD_PANEL_PATTERN = '{datadir}/mr/ieugwasr/{gwas_pop}'
 
-BXCAN_SIGNIF = OrderedDict(
+BXCAN_SIGNIF = OrderedDict([
     ('signif_pval', 1e-5),
     ('signif_max_idps', 10)
-)
+])
 
-IDP_WEIGHTS_COLS = OrderedDict(
-    ('snpid', 'variant_id')
-    ('effect_allele', 'a0')
-    ('non_effect_allele', 'a1')
+IDP_WEIGHTS_COLS = OrderedDict([
+    ('snpid', 'variant_id'),
+    ('effect_allele', 'a0'),
+    ('non_effect_allele', 'a1'),
     ('chr', 'chr')
-)
+])
 

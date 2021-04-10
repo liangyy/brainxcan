@@ -1,6 +1,15 @@
 gwas: '/gpfs/data/im-lab/nas40t2/Data/SummaryResults/imputed_gwas_hg38_1.1/imputed_pgc.scz2.txt.gz'
 gwas_pop: 'EUR'
+snpid: 'rsid'
+effect_allele: 'effect_allele'
+non_effect_allele: 'non_effect_allele'
+zscore: 'zscore'
+sample_size: 'sample_size'
+allele_frequency: 'frequency'
+chr: 'chromsome'
 datadir: ''
+outdir: 'output'
+prefix: 'test'
 
 # optional: default values are listed
 # no need to specify if you'd like to go with default
