@@ -64,6 +64,10 @@ def fill_gwas_col_meta(config):
 
 def fill_sbxcan_signif_criteria(config):
     sh._fill_config_w_default_if_needed(config, default_params.BXCAN_SIGNIF)
+    if config['signif_pval'] > 1 or config['signif_pval'] <= 0:
+        raise ValueError('P-value cutoff should be in (0, 1].')
+    if config['signif_max_idps'] < 0:
+        raise ValueError('Cannot be negative.')
     arg = '--pval {} --max_idps {}'.format(
         config['signif_pval'], config['signif_max_idps']
     )

@@ -16,8 +16,6 @@ args_snp_bim, snp_bim_files = fill_snp_bim(config)
 args_mr_ld_panel, mr_ld_panel_files = fill_mr_ld_panel(config)
 fill_exe(config)
 
-print(config)
-
 # output files
 sbxcan = '{outdir}/{prefix}.sbrainxcan.csv'.format(**config)
 sbxcan_vis = [
@@ -28,27 +26,6 @@ mr_vis = [
     '{outdir}/{prefix}.{idp_name}.MR_vis.png', 
     '{outdir}/{prefix}.{idp_name}.MR_sumstats.tsv'
 ]
-
-
-# rule SBrainXcan:
-#     input:
-#         sbxcan,
-#         [ i.format(**config) for i in sbxcan_vis ],
-#         aggregate_chkpnt
-
-# rule SBrainXcanOnly:
-#     input:
-#         sbxcan
-
-# rule SBrainXcanAndVis:
-#     input:
-#         [ i.format(**config) for i in sbxcan_vis ]
-
-# rule SBrainXcanAndMR:
-#     input:
-#         sbxcan,
-#         aggregate_chkpnt
-
 
 
 rule sbxcan_t1:
@@ -88,9 +65,11 @@ rule sbxcan_merge:
     output:
         '{outdir}/{prefix}.sbrainxcan.csv'
     shell:
-        'bash {config[brainxcan_path]}/brainxcan/snmk/merge_bxcan.sh \
-           {input[0]} {input[1]} \
-           {output[0]}'
+        '{config[python_exe]} \
+           {config[brainxcan_path]}/brainxcan/snmk/merge_bxcan.py \
+           --dmri {input[0]} \
+           --t1 {input[1]} \
+           --output {output[0]}'
 
 checkpoint sbxcan_signif:
     input:
@@ -99,7 +78,7 @@ checkpoint sbxcan_signif:
         directory('{outdir}/{prefix}/tmp_signif')
     shell:
         '{config[python_exe]} \
-           {config[brainxcan_path]}/brainxcan/sbxcan/util/grab_signif.py \
+           {config[brainxcan_path]}/brainxcan/snmk/grab_signif.py \
            {args_signif_criteria} \
            --sbxcan {input[0]} \
            --outdir {output[0]}'
@@ -155,11 +134,12 @@ def aggregate_chkpnt(wildcards, config):
     tmp = glob_wildcards(os.path.join(checkpoint_output, '{idp_modality}_{idp_code}.txt'))
     print('IIIIIIIIIIIIIIIIIIIIIII')
     print(tmp)
-    expand(
-        '{outdir}/{prefix}.{idp_modality}_{idp_code}.MR_vis.png',
-        idp_modality=glob_wildcards(os.path.join(checkpoint_output, '{idp_modality}_{idp_code}.txt')).idp_name,
-        
-    )
+    # TODO
+    # expand(
+    #     '{outdir}/{prefix}.{idp_modality}_{idp_code}.MR_vis.png',
+    #     idp_modality=glob_wildcards(os.path.join(checkpoint_output, '{idp_modality}_{idp_code}.txt')).idp_name,
+    # 
+    # )
 
 rule SBrainXcan:
     input:
