@@ -85,6 +85,7 @@ def fill_sbxcan_idp_weight(config):
             ('idp_modality', 't1') 
         ])
     ) 
+    t1 = [ t1, _parquet2perf(t1) ]
     dmri = sh._try_to_format(
         config['idp_weights_pattern'],
         OrderedDict([
@@ -94,6 +95,7 @@ def fill_sbxcan_idp_weight(config):
             ('idp_modality', 'dmri') 
         ])
     )     
+    dmri = [ dmri, _parquet2perf(t1) ]
     cols = [ f'{k}:{v}' for k, v in config['idp_weights_cols'].items() ]
     return cols, t1, dmri  
     

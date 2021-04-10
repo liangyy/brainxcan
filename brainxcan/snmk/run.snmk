@@ -31,8 +31,9 @@ mr_vis = [
 rule sbxcan_t1:
     input:
         config['gwas'],
-        idp_weight_t1,
+        idp_weight_t1[0],
         geno_cov_files
+        idp_weight_t1[1]
     output:
         temp('{outdir}/{prefix}.sbrainxcan_t1.csv')
     shell:
@@ -46,8 +47,9 @@ rule sbxcan_t1:
 rule sbxcan_dmri:
     input:
         config['gwas'],
-        idp_weight_dmri,
-        geno_cov_files
+        idp_weight_dmri[0],
+        geno_cov_files,
+        idp_weight_dmri[1]
     output:
         temp('{outdir}/{prefix}.sbrainxcan_dmri.csv')
     shell:

@@ -41,3 +41,6 @@ def _try_format_for_list(pat, dict_, l, key):
         dict_[key] = str(i)
         o.append(_try_to_format(pat, dict_))
     return o
+def _parquet2perf(fn):
+    return re.sub('.parquet', '.perf.tsv.gz', fn)
+    

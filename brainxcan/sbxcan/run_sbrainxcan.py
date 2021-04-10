@@ -240,7 +240,12 @@ def load_idp(args_list):
     df = pd.read_parquet(fn)
     df.rename(columns=rename_dict, inplace=True)
     df.chr = df.chr.astype(str)
-    return df
+    # load perf.tsv.gz
+    fn2 = re.sub('.parquet', '.perf.tsv.gz')
+    df_perf = pd.read_csv(fn2, compression='gzip', sep='\t')
+    df_perf.rename(columns={'phenotype': 'IDP'}, inplace=True)
+    df_perf.rename(columns={ k : f'CV_{k}' for k in df_perf.columns[1:] }, inplace=True)
+    return df, df_perf
 
 def load_cov_meta(fn):
     fn = '.'.join(fn.split('.')[:-1])
@@ -304,7 +309,7 @@ if __name__ == '__main__':
     logging.info('GWAS SNP = {}'.format(df_gwas.shape[0]))
     
     logging.info('Loading IDP weights.')
-    df_weight = load_idp(args.idp_weight)
+    df_weight, df_perf = load_idp(args.idp_weight)
     idp_names = list(df_weight.columns[4:])
     nidp = len(idp_names)
     nsnp_total = (df_weight.iloc[:, 4:].values != 0).sum(axis=0)
@@ -416,6 +421,8 @@ if __name__ == '__main__':
         # 'pip': susie_pip,
         # 'cs95': susie_cs
     })
+    df_res = pd.merge(df_res, df_perf, on='IDP', how='left')
+    df_res.fillna('NA', inplace=True)
     df_res.sort_values(by='pval').to_csv(args.output, index=False)
     
     logging.info('Done.')
