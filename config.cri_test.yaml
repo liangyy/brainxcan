@@ -1,3 +1,8 @@
+datadir: '/gpfs/data/im-lab/nas40t2/yanyul/data/brainxcan_data'
+outdir: 'output'
+prefix: 'test'
+brainxcan_path: '/gpfs/data/im-lab/nas40t2/yanyul/GitHub/brainxcan'
+
 gwas: '/gpfs/data/im-lab/nas40t2/Data/SummaryResults/imputed_gwas_hg38_1.1/imputed_pgc.scz2.txt.gz'
 gwas_pop: 'EUR'
 snpid: 'variant_id'
@@ -7,10 +12,6 @@ zscore: 'zscore'
 sample_size: 'sample_size'
 allele_frequency: 'frequency'
 chr: 'chromosome'
-datadir: '/gpfs/data/im-lab/nas40t2/yanyul/data/brainxcan_data'
-outdir: 'output'
-prefix: 'test'
-brainxcan_path: '/gpfs/data/im-lab/nas40t2/yanyul/GitHub/brainxcan'
 
 # model_type: 'ridge'
 # idp_type: 'original'
@@ -20,6 +21,3 @@ signif_max_idps: 1
      
 rscript_exe: '/gpfs/data/im-lab/nas40t2/yanyul/softwares/miniconda2/envs/two_sample_mr/bin/Rscript' 
 # python_exe: 'python'
-
-
-
