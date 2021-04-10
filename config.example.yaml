@@ -10,6 +10,7 @@ chr: 'chromsome'
 datadir: '/gpfs/data/im-lab/nas40t2/yanyul/data/brainxcan_data'
 outdir: 'output'
 prefix: 'test'
+brainxcan_path: '/gpfs/data/im-lab/nas40t2/yanyul/GitHub/brainxcan'
 
 # optional: default values are listed
 # no need to specify if you'd like to go with default

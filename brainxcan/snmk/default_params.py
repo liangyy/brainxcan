@@ -15,7 +15,7 @@ MODEL_TYPE = [
 ]
 GWAS_POPS = ['EUR', 'SAS', 'AMR', 'EAS', 'AFR']
 
-GENO_COV_PATTERN = '{datadir}/geno_cov/chr{chr_num}.banded.npz'
+GENO_COV_PATTERN = '{datadir}/geno_covar/chr{chr_num}.banded.npz'
 IDP_WEIGHTS_PATTERN = '{datadir}/idp_weights/{model_type}/{idp_type}.{idp_modality}.parquet'
 IDP_GWAS_PATTERN = '{datadir}/idp_gwas/{idp_type}.{idp_modality}.chr{chr_num}/{idp_code}.parquet'
 IDP_GWAS_SNP_PATTERN = '{datadir}/idp_gwas/snp_bim/chr{chr_num}.bim'
