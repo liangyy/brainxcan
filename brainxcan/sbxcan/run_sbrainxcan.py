@@ -241,10 +241,11 @@ def load_idp(args_list):
     df.rename(columns=rename_dict, inplace=True)
     df.chr = df.chr.astype(str)
     # load perf.tsv.gz
-    fn2 = re.sub('.parquet', '.perf.tsv.gz')
+    fn2 = re.sub('.parquet', '.perf.tsv.gz', fn)
     df_perf = pd.read_csv(fn2, compression='gzip', sep='\t')
     df_perf.rename(columns={'phenotype': 'IDP'}, inplace=True)
-    df_perf.rename(columns={ k : f'CV_{k}' for k in df_perf.columns[1:] }, inplace=True)
+    perf_cols = ['R2', 'Pearson', 'Spearman']
+    df_perf.rename(columns={ k : f'CV_{k}' for k in perf_cols }, inplace=True)
     return df, df_perf
 
 def load_cov_meta(fn):
