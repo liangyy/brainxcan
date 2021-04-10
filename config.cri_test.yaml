@@ -1,9 +1,9 @@
 gwas: '/gpfs/data/im-lab/nas40t2/Data/SummaryResults/imputed_gwas_hg38_1.1/imputed_pgc.scz2.txt.gz'  
 # gwas: '/gpfs/data/im-lab/nas40t2/yanyul/GitHub/brainxcan/test.txt.gz'
 datadir: '/gpfs/data/im-lab/nas40t2/yanyul/data/brainxcan_data'
-outdir: 'output'
+# outdir: 'output'
 prefix: 'test'
-brainxcan_path: '/gpfs/data/im-lab/nas40t2/yanyul/GitHub/brainxcan'
+# brainxcan_path: '/gpfs/data/im-lab/nas40t2/yanyul/GitHub/brainxcan'
 
 gwas_pop: 'EUR'
 snpid: 'variant_id'
