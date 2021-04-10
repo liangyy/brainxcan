@@ -113,12 +113,19 @@ rule mr:
 
 rule mr_vis:
     input:
-        '{outdir}/{prefix}.MR.{idp_modality}_{idp_code}.rds'
+        '{outdir}/{prefix}.MR.{idp_modality}_{idp_code}.rds',
+        '{outdir}/{prefix}/tmp_signif/{idp_modality}_{idp_code}.txt'
     output:
         '{outdir}/{prefix}.{idp_modality}_{idp_code}.MR_vis.png',
         '{outdir}/{prefix}.{idp_modality}_{idp_code}.MR_sumstats.tsv'
     shell:
-        'TODO'
+        '{config[rscript_exe]} \
+          {config[brainxcan_path]}/brainxcan/mr/run_mr_vis.R \
+          --mr_rds {input[0]} \
+          --bxcan {input[1]} \
+          --output_plot {output[0]} \
+          --output_table {output[1]}'
+          # export R_SRC={config[brainxcan_path]}/brainxcan/mr; \
 
 rule sbxcan_vis:
     input:
