@@ -174,7 +174,7 @@ def aggregate_chkpnt(wildcards, config):
 rule SBrainXcan:
     input:
         sbxcan,
-        [ i.format(**config) for i in sbxcan_vis ],
+        sbxcan_vis,
         lambda wildcards: aggregate_chkpnt(wildcards, config)
 
 rule SBrainXcanOnly:
