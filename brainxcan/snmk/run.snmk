@@ -15,13 +15,15 @@ params_gwas_idp, gwas_idp_files = fill_gwas_idp(config)
 args_snp_bim, snp_bim_files = fill_snp_bim(config)
 args_mr_ld_panel, mr_ld_panel_files = fill_mr_ld_panel(config)
 fill_exe(config)
+bxcan_vis_datadir = fill_bxcan_vis_datadir(config)
 
 # output files
 sbxcan = '{outdir}/{prefix}.sbrainxcan.csv'.format(**config)
-sbxcan_vis = [
-    '{outdir}/{prefix}.vis_t1.png',
-    '{outdir}/{prefix}.vis_dmri.png'
-]
+sbxcan_vis = '{outdir}/{prefix}.vis.png'
+# [
+#     '{outdir}/{prefix}.vis_t1.png',
+#     '{outdir}/{prefix}.vis_dmri.png'
+# ]
 mr_vis = [
     '{outdir}/{prefix}.{idp_name}.MR_vis.png', 
     '{outdir}/{prefix}.{idp_name}.MR_sumstats.tsv'
@@ -110,7 +112,7 @@ rule mr:
     params:
         gwas_idp = params_gwas_idp,
     shell:
-        'export R_SRC={config[brainxcan_path]}/brainxcan/mr; \
+        'export R_MR_SRC={config[brainxcan_path]}/brainxcan/mr; \
           {config[rscript_exe]} \
           {config[brainxcan_path]}/brainxcan/mr/run_mr_local.R \
           --idp_gwas_pattern {params.gwas_idp} \
@@ -133,21 +135,24 @@ rule mr_vis:
         '{outdir}/logs/{prefix}.{idp_modality}_{idp_code}.MR_vis.log'
     shell:
         '{config[rscript_exe]} \
-          {config[brainxcan_path]}/brainxcan/mr/run_mr_vis.R \
+          {config[brainxcan_path]}/brainxcan/vis/run_mr_vis.R \
           --mr_rds {input[0]} \
           --bxcan {input[1]} \
           --output_plot {output[0]} \
           --output_table {output[1]} > {log} 2>&1'
-          # export R_SRC={config[brainxcan_path]}/brainxcan/mr; \
 
 rule sbxcan_vis:
     input:
         '{outdir}/{prefix}.sbrainxcan.csv'
     output:
-        '{outdir}/{prefix}.vis_t1.png',
-        '{outdir}/{prefix}.vis_dmri.png'
+        '{outdir}/{prefix}.vis.png'
     shell:
-        'TODO'
+        'export R_VIS_SRC={config[brainxcan_path]}/brainxcan/vis; \
+         {config[rscript_exe]} \
+           {config[brainxcan_path]}/brainxcan/vis/run_bxcan_vis.R \
+           --brainxcan {input[0]} \
+           --datadir {bxcan_vis_datadir} \
+           --output {output[0]}'
 
 def aggregate_chkpnt(wildcards, config):
     '''

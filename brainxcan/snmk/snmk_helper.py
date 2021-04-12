@@ -224,3 +224,10 @@ def fill_mr_ld_panel(config):
         ['bed', 'bim', 'fam'], 'suffix'
     )
     return arg, files
+
+def fill_bxcan_vis_datadir(config):
+    res = sh._try_to_format(
+        config['datadir'], 
+        OrderedDict([('datadir', config['datadir'])])
+    )
+    return res

@@ -48,7 +48,7 @@ option_list <- list(
 opt_parser <- OptionParser(option_list=option_list)
 opt <- parse_args(opt_parser) 
 
-srcpath = Sys.getenv("R_SRC")
+srcpath = Sys.getenv("R_MR_SRC")
 source(paste0(srcpath, '/', 'mr_helper.R'))
 library(dplyr)
 library(TwoSampleMR)
