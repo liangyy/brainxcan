@@ -32,7 +32,9 @@ vis_by_tag = function(datadir, tag, df, score) {
   mid1 = vis_bg@dim_[2]
   mid2 = vis_bg@dim_[3]
   mid3 = vis_bg@dim_[4]
-  dd = vis_meta$slide_position
+  d1 = vis_meta$slide_position[1]
+  d2 = vis_meta$slide_position[2]
+  d3 = vis_meta$slide_position[3]
   tmp = rbind(
     bb %>% filter(Var1 == floor(mid1 / d1)) %>% mutate(direction = 'a1') %>% rename(x = Var2, y = Var3, ref = Var1),
     bb %>% filter(Var2 == floor(mid2 / d2)) %>% mutate(direction = 'a2') %>% rename(x = Var1, y = Var3, ref = Var2),

@@ -21,19 +21,21 @@ source(paste0(srcpath, '/', 'vis_helper.R'))
 library(dplyr)
 library(ggplot2)
 library(patchwork)
+library(oro.nifti)
 theme_set(theme_classic(base_size = 12))
 options(stringsAsFactors = F)
 
-tag_list = names(readRDS(paste0(opt$datadir), '/meta_plot.rds'))
+tags = names(readRDS(paste0(opt$datadir, '/meta_plot.rds')))
 
 logging::loginfo('Loading BrainXcan results.')
 df = read.csv(opt$brainxcan) %>% mutate(zscore = p2z(pval, bhat))
 
 logging::loginfo('Plotting for all tags.')
-p_all = NULL
+p = list() 
 for(tag in tags) {
-  logging::loginfo('Tag = ', tag)
-  p_all = p_all + (vis_by_tag(opt$datadir, tag, df, 'zscore') + ggtitle(tag))
+  logging::loginfo(paste0('Tag = ', tag))
+  p[[length(p) + 1]] = vis_by_tag(opt$datadir, tag, df, 'zscore') + ggtitle(tag)
 }
-ggsave(opt$output, p_all, height = 4 * length(tags), width = 10)
+pp = wrap_plots(p, ncol = 1, nrow = length(tags))
+ggsave(opt$output, pp, height = 4 * length(tags), width = 10)
 

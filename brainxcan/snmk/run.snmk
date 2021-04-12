@@ -19,7 +19,7 @@ bxcan_vis_datadir = fill_bxcan_vis_datadir(config)
 
 # output files
 sbxcan = '{outdir}/{prefix}.sbrainxcan.csv'.format(**config)
-sbxcan_vis = '{outdir}/{prefix}.vis.png'
+sbxcan_vis = '{outdir}/{prefix}.vis.png'.format(**config)
 # [
 #     '{outdir}/{prefix}.vis_t1.png',
 #     '{outdir}/{prefix}.vis_dmri.png'
@@ -183,7 +183,7 @@ rule SBrainXcanOnly:
 
 rule SBrainXcanAndVis:
     input:
-        [ i.format(**config) for i in sbxcan_vis ]
+        sbxcan_vis
 
 rule SBrainXcanAndMR:
     input:
