@@ -226,8 +226,9 @@ def fill_mr_ld_panel(config):
     return arg, files
 
 def fill_bxcan_vis_datadir(config):
+    sh._try_fill_config(config, 'bxcan_vis_datadir', default_params.BXCAN_VIS_DATADIR)
     res = sh._try_to_format(
-        config['datadir'], 
+        config['bxcan_vis_datadir'], 
         OrderedDict([('datadir', config['datadir'])])
     )
     return res

@@ -5,6 +5,7 @@ PYTHON_EXE = 'python'
 RSCRIPT_EXE = 'Rscript'
 PLINK_EXE = 'plink'
 LD_CLUMP_YAML = '{datadir}/mr/ld_clump.yaml'
+BXCAN_VIS_DATADIR = '{datadir}/bxcan_vis'
 IDP_TYPE = [
     'original',  # default
     ['original', 'residual']  # options 
