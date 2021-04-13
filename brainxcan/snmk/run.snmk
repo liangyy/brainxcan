@@ -6,6 +6,7 @@ check_datadir(config)
 fill_idp_type(config)
 fill_model_type(config)
 fill_patterns(config)
+spearman_cutoff = fill_spearman_cutoff(config)
 args_col_meta_sbxcan, args_col_meta_mr = fill_gwas_col_meta(config)
 args_signif_criteria = fill_sbxcan_signif_criteria(config)
 args_idp_cols, idp_weight_t1, idp_weight_dmri = fill_sbxcan_idp_weight(config)
@@ -47,6 +48,7 @@ rule sbxcan_t1:
            --genotype_covariance {args_geno_cov} \
            --gwas {input[0]} {args_col_meta_sbxcan} \
            --idp_weight {input[1]} {args_idp_cols} \
+           --spearman_cutoff {spearman_cutoff} \
            --output {output[0]} > {log} 2>&1'
 
 rule sbxcan_dmri:
@@ -66,6 +68,7 @@ rule sbxcan_dmri:
            --genotype_covariance {args_geno_cov} \
            --gwas {input[0]} {args_col_meta_sbxcan} \
            --idp_weight {input[1]} {args_idp_cols} \
+           --spearman_cutoff {spearman_cutoff} \
            --output {output[0]} > {log} 2>&1'
 
 rule sbxcan_merge:

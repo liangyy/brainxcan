@@ -35,6 +35,9 @@ model_type: 'ridge'
 # IDP sets to use: original or residual (after PC adjustment)
 idp_type: 'original'
 
+# CV Spearman cutoff on models (only models passing this criteria will be shown)
+spearman_cutoff: 0.1 
+
 # parameters to define signif BrainXcan results for MR
 signif_pval: 1e-5
 signif_max_idps: 10

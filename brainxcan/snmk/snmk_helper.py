@@ -16,6 +16,10 @@ def check_required_args(config):
     required = ['gwas', 'gwas_pop', 'datadir', 'chr', 'non_effect_allele', 'effect_allele', 'snpid', 'prefix', 'brainxcan_path']
     sh._check_list_all_in(required, config)
 
+def fill_spearman_cutoff(config):
+    sh._try_fill_config(config, 'spearman_cutoff', default_params.SPEARMAN_CUTOFF)
+    return config['spearman_cutoff']
+
 def fill_gwas_col_meta(config):
     '''
     snpid: 'rsid'

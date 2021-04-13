@@ -235,7 +235,7 @@ def _parse_idp_args(args_list):
     fn, rename_dict = _parse_args(args_list, desired_cols)
     return fn, rename_dict
         
-def load_idp(args_list):
+def load_idp(args_list, spearman_cutoff=0.1):
     fn, rename_dict = _parse_idp_args(args_list)
     df = pd.read_parquet(fn)
     df.rename(columns=rename_dict, inplace=True)
@@ -246,6 +246,10 @@ def load_idp(args_list):
     df_perf.rename(columns={'phenotype': 'IDP'}, inplace=True)
     perf_cols = ['R2', 'Pearson', 'Spearman']
     df_perf.rename(columns={ k : f'CV_{k}' for k in perf_cols }, inplace=True)
+    df_perf = df_perf[ df.CV_Spearman >= spearman_cutoff ].reset_index(drop=True)
+    cols_to_keep = list(df.columns[:4]) + list(df_perf.IDP)
+    df = df[ cols_to_keep ].copy()
+    df = df[ df.iloc[4:].values.sum(axis=1) != 0 ].reset_index(drop=True)
     return df, df_perf
 
 def load_cov_meta(fn):
@@ -279,6 +283,9 @@ if __name__ == '__main__':
         Along with all other columns for the IDPs.
         Specify the column names, e.g.: snpid:rsID, ..., chr:chr
     ''')
+    parser.add_argument('--spearman_cutoff', type=float, default=0.1, help='''
+        The CV Spearman cutoff applied to models. 
+    ''')
     parser.add_argument('--output', help='''
         The output CSV filename.
         Will return both marginal test result and also the susieR result.
@@ -310,7 +317,10 @@ if __name__ == '__main__':
     logging.info('GWAS SNP = {}'.format(df_gwas.shape[0]))
     
     logging.info('Loading IDP weights.')
-    df_weight, df_perf = load_idp(args.idp_weight)
+    df_weight, df_perf = load_idp(
+        args.idp_weight, 
+        spearman_cutoff=args.spearman_cutoff
+    )
     idp_names = list(df_weight.columns[4:])
     nidp = len(idp_names)
     nsnp_total = (df_weight.iloc[:, 4:].values != 0).sum(axis=0)

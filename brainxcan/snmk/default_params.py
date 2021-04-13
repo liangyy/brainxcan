@@ -6,6 +6,9 @@ RSCRIPT_EXE = 'Rscript'
 PLINK_EXE = 'plink'
 LD_CLUMP_YAML = '{datadir}/mr/ld_clump.yaml'
 BXCAN_VIS_DATADIR = '{datadir}/bxcan_vis'
+SPEARMAN_CUTOFF = 0.1
+
+
 IDP_TYPE = [
     'original',  # default
     ['original', 'residual']  # options 
