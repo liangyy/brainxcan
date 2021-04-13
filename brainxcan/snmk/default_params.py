@@ -32,8 +32,8 @@ BXCAN_SIGNIF = OrderedDict([
 
 IDP_WEIGHTS_COLS = OrderedDict([
     ('snpid', 'variant_id'),
-    ('effect_allele', 'a0'),
-    ('non_effect_allele', 'a1'),
+    ('effect_allele', 'a1'),
+    ('non_effect_allele', 'a0'),
     ('chr', 'chr')
 ])
 
