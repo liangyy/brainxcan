@@ -246,10 +246,10 @@ def load_idp(args_list, spearman_cutoff=0.1):
     df_perf.rename(columns={'phenotype': 'IDP'}, inplace=True)
     perf_cols = ['R2', 'Pearson', 'Spearman']
     df_perf.rename(columns={ k : f'CV_{k}' for k in perf_cols }, inplace=True)
-    df_perf = df_perf[ df.CV_Spearman >= spearman_cutoff ].reset_index(drop=True)
+    df_perf = df_perf[ df_perf.CV_Spearman >= spearman_cutoff ].reset_index(drop=True)
     cols_to_keep = list(df.columns[:4]) + list(df_perf.IDP)
     df = df[ cols_to_keep ].copy()
-    df = df[ df.iloc[4:].values.sum(axis=1) != 0 ].reset_index(drop=True)
+    df = df[ df.iloc[:, 4:].values.sum(axis=1) != 0 ].reset_index(drop=True)
     return df, df_perf
 
 def load_cov_meta(fn):
