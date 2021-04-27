@@ -2,6 +2,31 @@ p2z = function(p, b) {
   sign(b) * abs(qnorm(p / 2, lower.tail = T))
 }
 
+gen_five_scales = function(sig_cutoff, nominal_cutoff) {
+  res = c(
+    paste0('z > ', sig_cutoff),
+    paste0(nominal_cutoff, ' < z <= ', sig_cutoff),
+    paste0(-nominal_cutoff, ' <= z <= ', nominal_cutoff),
+    paste0(-sig_cutoff, ' <= z < ', -nominal_cutoff),
+    paste0('z < ', - sig_cutoff)
+  )
+  return(res)
+}
+
+zscore2category = function(zval, sig_cutoff = 4, nominal_cutoff = 2, colors = c('#D41159', '#EA88AC', '#FFFFFF', '#8DC2FF', '#1A85FF')) {
+  sig_cutoff = abs(sig_cutoff)
+  nominal_cutoff = abs(nominal_cutoff)
+  scales = gen_five_scales(sig_cutoff, nominal_cutoff)
+  oo = rep(scales[3], length(zval))
+  oo[zval > sig_cutoff] = scales[1]
+  oo[zval < - sig_cutoff] = scales[5]
+  oo[zval <= sig_cutoff & zval > nominal_cutoff] = scales[2]
+  oo[zval >= - sig_cutoff & zval < - nominal_cutoff] = scales[4]
+  color_scale = colors
+  names(color_scale) = scales
+  return(list(category = oo, color_code = color_scale))
+}
+
 vis_by_tag = function(datadir, tag, df, score) {
   vis_bg = readRDS(paste0(datadir, '/bg_img.rds'))
   vis_meta = readRDS(paste0(datadir, '/meta_plot.rds'))
@@ -41,14 +66,28 @@ vis_by_tag = function(datadir, tag, df, score) {
     bb %>% filter(Var3 == floor(mid3 / d3)) %>% mutate(direction = 'a3') %>% rename(x = Var1, y = Var2, ref = Var3)
   )
   
-  p = tmp %>% ggplot() + 
-    geom_raster(aes(x, y, fill = value)) +
-    scale_fill_gradient2(name = score, low = 'blue', mid = 'white', high = 'red', midpoint = 0, na.value = 'transparent') +
-    geom_tile(aes(x, y, alpha = -bg), fill = "grey20") +
-    scale_alpha(range = c(0.2, 0.8)) +
-    coord_equal() + facet_grid(.~direction, labeller = label_both) +
-    guides(color = guide_legend("-bg"), alpha = FALSE)
-  p
+  if(score == 'zscore') {
+    kk = zscore2category(tmp$value)
+    tmp$value_category = kk$category
+    p = tmp %>% ggplot() + 
+      geom_raster(aes(x, y, fill = value_category)) +
+      scale_fill_manual(values = kk$color_code, na.value = 'transparent') + 
+      # scale_fill_gradient2(name = score, low = 'blue', mid = 'white', high = 'red', midpoint = 0, na.value = 'transparent') +
+      geom_tile(aes(x, y, alpha = -bg), fill = "grey20") +
+      scale_alpha(range = c(0.2, 0.8)) +
+      coord_equal() + facet_grid(.~direction, labeller = label_both) +
+      guides(color = guide_legend("-bg"), alpha = FALSE)
+  } else {
+    p = tmp %>% ggplot() + 
+      geom_raster(aes(x, y, fill = value)) +
+      scale_fill_gradient2(name = score, low = 'blue', mid = 'white', high = 'red', midpoint = 0, na.value = 'transparent') +
+      geom_tile(aes(x, y, alpha = -bg), fill = "grey20") +
+      scale_alpha(range = c(0.2, 0.8)) +
+      coord_equal() + facet_grid(.~direction, labeller = label_both) +
+      guides(color = guide_legend("-bg"), alpha = FALSE)
+  }
+  
+  p + theme(axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank())
 }
 
 

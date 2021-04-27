@@ -3,6 +3,7 @@
 output/
 .DS_Store
 ._*
+.Rhistory
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

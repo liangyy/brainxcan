@@ -20,7 +20,10 @@ bxcan_vis_datadir = fill_bxcan_vis_datadir(config)
 
 # output files
 sbxcan = '{outdir}/{prefix}.sbrainxcan.csv'.format(**config)
-sbxcan_vis = '{outdir}/{prefix}.vis.pdf'.format(**config)
+sbxcan_vis = [
+    '{outdir}/{prefix}.vis.T1.pdf'.format(**config),
+    '{outdir}/{prefix}.vis.dMRI.pdf'.format(**config)
+]
 # [
 #     '{outdir}/{prefix}.vis_t1.pdf',
 #     '{outdir}/{prefix}.vis_dmri.pdf'
@@ -148,7 +151,10 @@ rule sbxcan_vis:
     input:
         '{outdir}/{prefix}.sbrainxcan.csv'
     output:
-        '{outdir}/{prefix}.vis.pdf'
+        '{outdir}/{prefix}.vis.dMRI.pdf',
+        '{outdir}/{prefix}.vis.T1.pdf'
+    params:
+        '{outdir}/{prefix}.vis'
     log:
         '{outdir}/{prefix}.vis.log'
     shell:
@@ -157,7 +163,7 @@ rule sbxcan_vis:
            {config[brainxcan_path]}/brainxcan/vis/run_bxcan_vis.R \
            --brainxcan {input[0]} \
            --datadir {bxcan_vis_datadir} \
-           --output {output[0]}'
+           --output_prefix {params[0]}'
 
 def aggregate_chkpnt(wildcards, config):
     '''
