@@ -24,6 +24,8 @@ zscore2category = function(zval, sig_cutoff = 4, nominal_cutoff = 2, colors = c(
   oo[zval >= - sig_cutoff & zval < - nominal_cutoff] = scales[4]
   color_scale = colors
   names(color_scale) = scales
+  oo[is.na(zval)] = NA
+  oo = factor(oo, levels = scales)
   return(list(category = oo, color_code = color_scale))
 }
 
@@ -71,7 +73,7 @@ vis_by_tag = function(datadir, tag, df, score) {
     tmp$value_category = kk$category
     p = tmp %>% ggplot() + 
       geom_raster(aes(x, y, fill = value_category)) +
-      scale_fill_manual(values = kk$color_code, na.value = 'transparent') + 
+      scale_fill_manual(values = kk$color_code, na.value = 'transparent', na.translate = FALSE) + 
       # scale_fill_gradient2(name = score, low = 'blue', mid = 'white', high = 'red', midpoint = 0, na.value = 'transparent') +
       geom_tile(aes(x, y, alpha = -bg), fill = "grey20") +
       scale_alpha(range = c(0.2, 0.8)) +
@@ -87,7 +89,8 @@ vis_by_tag = function(datadir, tag, df, score) {
       guides(color = guide_legend("-bg"), alpha = FALSE)
   }
   
-  p + theme(axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank())
+  p + theme(axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) + 
+  theme(legend.title = element_blank())
 }
 
 
