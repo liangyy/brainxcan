@@ -18,6 +18,9 @@ option_list <- list(
 opt_parser <- OptionParser(option_list=option_list)
 opt <- parse_args(opt_parser) 
 
+srcpath = Sys.getenv("R_VIS_SRC")
+source(paste0(srcpath, '/', 'vis_helper.R'))
+
 library(dplyr)
 library(ggplot2)
 library(patchwork)

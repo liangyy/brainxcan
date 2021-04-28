@@ -140,7 +140,8 @@ rule mr_vis:
     log:
         '{outdir}/logs/{prefix}.{idp_modality}_{idp_code}.MR_vis.log'
     shell:
-        '{config[rscript_exe]} \
+        'export R_VIS_SRC={config[brainxcan_path]}/brainxcan/vis; \
+          {config[rscript_exe]} \
           {config[brainxcan_path]}/brainxcan/vis/run_mr_vis.R \
           --mr_rds {input[0]} \
           --bxcan {input[1]} \
