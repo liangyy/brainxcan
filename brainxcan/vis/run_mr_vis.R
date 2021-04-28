@@ -57,6 +57,26 @@ df_res = rbind(
   df_mr, 
   bxcan %>% select(direction, method, nsnp, b, pval)
 )
+
+# add ACAT based meta-analysis to combine MR tests
+bxcan_direction = sign(df_res %>% filter(method == 'BrainXcan') %>% pull(b))
+acat_res = list()
+for(dd in c('IDP -> Phenotype', 'Phenotype -> IDP')) {
+  sub = df_mr %>% filter(!is.na(direction) & direction == dd)
+  p_acat = acat_signed(sub$pval, sub$b, bxcan_direction)
+  acat_res[[length(acat_res) + 1]] = data.frame(direction = dd, method = 'ACAT meta-analysis', nsnp = NA, b = bxcan_direction, pval = p_acat)
+}
+acat_res = do.call(rbind, acat_res)
+df_res = rbind(df_res, acat_res)
+
+# add heterogeneity test
+df_het = rbind(
+  mr_res$idp2pheno$heterogeneity %>% filter(method %in% mr_methods) %>% mutate(direction = 'IDP -> Phenotype'),
+  mr_res$pheno2idp$heterogeneity %>% filter(method %in% mr_methods) %>% mutate(direction = 'Phenotype -> IDP') 
+) %>% select(direction, method, Q, Q_df, Q_pval)
+df_res = left_join(df_res, df_het, by = c('method', 'direction'))
+
+
 write.table(df_res, opt$output_table, sep = '\t', col = T, row = F, quo = F)
 
 logging::loginfo('Done.')

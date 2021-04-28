@@ -93,4 +93,15 @@ vis_by_tag = function(datadir, tag, df, score) {
   theme(legend.title = element_blank())
 }
 
+acat_vanilla = function(p_vec) {
+  T_acat = sum(tan((0.5 - p_vec) * pi))
+  # T_acat
+  1 / 2 - atan(T_acat / length(p_vec)) / pi
+}
 
+acat_signed = function(p_vec, stat, reference_direction) {
+  sign_stat = sign(stat) * reference_direction
+  pp = p_vec / 2
+  pp[sign_stat < 0] = 1 - p_vec[sign_stat < 0] / 2
+  acat_vanilla(pp)
+}
