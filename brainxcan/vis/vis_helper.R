@@ -13,7 +13,7 @@ gen_five_scales = function(sig_cutoff, nominal_cutoff) {
   return(res)
 }
 
-zscore2category = function(zval, sig_cutoff = 4, nominal_cutoff = 2, colors = c('#D41159', '#EA88AC', '#FFFFFF', '#8DC2FF', '#1A85FF')) {
+zscore2category = function(zval, sig_cutoff = 4, nominal_cutoff = 2, colors = c('#D55E00', '#EAAF80', '#FFFFFF', '#80B9D9', '#0072B2')) {
   sig_cutoff = abs(sig_cutoff)
   nominal_cutoff = abs(nominal_cutoff)
   scales = gen_five_scales(sig_cutoff, nominal_cutoff)
@@ -71,12 +71,12 @@ vis_by_tag = function(datadir, tag, df, score) {
   if(score == 'zscore') {
     kk = zscore2category(tmp$value)
     tmp$value_category = kk$category
-    p = tmp %>% ggplot() + 
-      geom_raster(aes(x, y, fill = value_category)) +
+    p = tmp %>% ggplot() +
       scale_fill_manual(values = kk$color_code, na.value = 'transparent', na.translate = FALSE) + 
       # scale_fill_gradient2(name = score, low = 'blue', mid = 'white', high = 'red', midpoint = 0, na.value = 'transparent') +
       geom_tile(aes(x, y, alpha = -bg), fill = "grey20") +
-      scale_alpha(range = c(0.2, 0.8)) +
+      scale_alpha(range = c(0.2, 0.8)) + 
+      geom_raster(aes(x, y, fill = value_category)) +
       coord_equal() + facet_grid(.~direction, labeller = label_both) +
       guides(color = guide_legend("-bg"), alpha = FALSE)
   } else {
