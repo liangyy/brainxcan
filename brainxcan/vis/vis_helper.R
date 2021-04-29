@@ -99,9 +99,17 @@ acat_vanilla = function(p_vec) {
   1 / 2 - atan(T_acat / length(p_vec)) / pi
 }
 
+# DEPREACATED since we don't want to use p / 2
+# acat_signed = function(p_vec, stat, reference_direction) {
+#   sign_stat = sign(stat) * reference_direction
+#   pp = p_vec / 2
+#   pp[sign_stat < 0] = 1 - p_vec[sign_stat < 0] / 2
+#   acat_vanilla(pp)
+# }
+
 acat_signed = function(p_vec, stat, reference_direction) {
   sign_stat = sign(stat) * reference_direction
-  pp = p_vec / 2
-  pp[sign_stat < 0] = 1 - p_vec[sign_stat < 0] / 2
+  pp = p_vec 
+  pp[sign_stat < 0] = 1 - p_vec[sign_stat < 0] 
   acat_vanilla(pp)
 }
