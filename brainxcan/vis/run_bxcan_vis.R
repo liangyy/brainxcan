@@ -42,7 +42,7 @@ for(kk in names(p)) {
   npp = length(p[[kk]])
   if(npp > 0) {
     pp = wrap_plots(p[[kk]], ncol = 1, nrow = npp)
-    ggsave(paste0(opt$output_prefix, '.', kk, '.pdf'), pp, height = 4 * npp, width = 10)
+    ggsave(paste0(opt$output_prefix, '.', kk, '.png'), pp, height = 4 * npp, width = 10)
   }
 }
 

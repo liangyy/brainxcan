@@ -21,15 +21,11 @@ bxcan_vis_datadir = fill_bxcan_vis_datadir(config)
 # output files
 sbxcan = '{outdir}/{prefix}.sbrainxcan.csv'.format(**config)
 sbxcan_vis = [
-    '{outdir}/{prefix}.vis.T1.pdf'.format(**config),
-    '{outdir}/{prefix}.vis.dMRI.pdf'.format(**config)
+    '{outdir}/{prefix}.vis.T1.png'.format(**config),
+    '{outdir}/{prefix}.vis.dMRI.png'.format(**config)
 ]
-# [
-#     '{outdir}/{prefix}.vis_t1.pdf',
-#     '{outdir}/{prefix}.vis_dmri.pdf'
-# ]
 mr_vis = [
-    '{outdir}/{prefix}.{idp_name}.MR_vis.pdf', 
+    '{outdir}/{prefix}.{idp_name}.MR_vis.png', 
     '{outdir}/{prefix}.{idp_name}.MR_sumstats.tsv'
 ]
 
@@ -135,7 +131,7 @@ rule mr_vis:
         '{outdir}/{prefix}.{idp_modality}_{idp_code}.MR.rds',
         '{outdir}/{prefix}/tmp_signif/{idp_modality}_{idp_code}.txt'
     output:
-        '{outdir}/{prefix}.{idp_modality}_{idp_code}.MR_vis.pdf',
+        '{outdir}/{prefix}.{idp_modality}_{idp_code}.MR_vis.png',
         '{outdir}/{prefix}.{idp_modality}_{idp_code}.MR_sumstats.tsv'
     log:
         '{outdir}/logs/{prefix}.{idp_modality}_{idp_code}.MR_vis.log'
@@ -152,8 +148,8 @@ rule sbxcan_vis:
     input:
         '{outdir}/{prefix}.sbrainxcan.csv'
     output:
-        '{outdir}/{prefix}.vis.dMRI.pdf',
-        '{outdir}/{prefix}.vis.T1.pdf'
+        '{outdir}/{prefix}.vis.dMRI.png',
+        '{outdir}/{prefix}.vis.T1.png'
     params:
         '{outdir}/{prefix}.vis'
     log:
@@ -173,7 +169,7 @@ def aggregate_chkpnt(wildcards, config):
     checkpoint_output = checkpoints.sbxcan_signif.get(**wildcards, **config).output[0]
     wc_ = glob_wildcards('{outdir}/{prefix}/tmp_signif/{{idp_modality}}_{{idp_code}}.txt'.format(**config))
     files = expand(
-        os.path.join('{outdir}/{prefix}.{idp_modality}_{idp_code}.MR_vis.pdf'),
+        os.path.join('{outdir}/{prefix}.{idp_modality}_{idp_code}.MR_vis.png'),
         zip,
         # **config,
         outdir=[ config['outdir'] for i in range(len(wc_.idp_modality)) ],
