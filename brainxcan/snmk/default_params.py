@@ -6,6 +6,8 @@ RSCRIPT_EXE = 'Rscript'
 PLINK_EXE = 'plink'
 LD_CLUMP_YAML = '{datadir}/mr/ld_clump.yaml'
 BXCAN_VIS_DATADIR = '{datadir}/bxcan_vis'
+BXCAN_IDP_META = '{datadir}/bxcan_vis/idp_meta_data.csv'
+BXCAN_COLOR_CODE = '{datadir}/bxcan_vis/report_color_code.yaml'
 SPEARMAN_CUTOFF = 0.1
 
 

@@ -236,3 +236,17 @@ def fill_bxcan_vis_datadir(config):
         OrderedDict([('datadir', config['datadir'])])
     )
     return res
+
+def fill_bxcan_report_data(config):
+    sh._try_fill_config(config, 'bxcan_idp_meta', default_params.BXCAN_IDP_META)
+    sh._try_fill_config(config, 'bxcan_color_code', default_params.BXCAN_COLOR_CODE)
+    meta = sh._try_to_format(
+        config['bxcan_idp_meta'], 
+        OrderedDict([('datadir', config['datadir'])])
+    )
+    color = sh._try_to_format(
+        config['bxcan_color_code'], 
+        OrderedDict([('datadir', config['datadir'])])
+    )
+    return meta, color
+    

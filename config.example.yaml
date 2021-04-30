@@ -55,6 +55,8 @@ python_exe: 'python'
 # don't recommend changing typically
 # only need when you want to use customized data in a nasty way 
 
+# bxcan_idp_meta: ''
+# bxcan_color_code: ''
 # bxcan_vis_datadir: ''
 # geno_cov_pattern: ''
 # idp_weights_pattern: ''

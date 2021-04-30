@@ -1,0 +1,43 @@
+library(optparse)
+
+option_list <- list(
+    make_option(c("-i", "--input_prefix"), type="character", default=NULL,
+                help="The prefix of all these BrainXcan analysis results",
+                metavar="character"),
+    make_option(c("-m", "--idp_meta_file"), type="character", default=NULL,
+                help="A meta file for annotating IDPs",
+                metavar="character"),
+    make_option(c("-c", "--color_code_yaml"), type="character", default=NULL,
+                help="Color coding",
+                metavar="character"),
+    make_option(c("-r", "--rlib"), type="character", default=NULL,
+                help="The path to report helper functions",
+                metavar="character"),
+    make_option(c("-p", "--phenotype_name"), type="character", default=NULL,
+                help="Phenotype name to show in the report",
+                metavar="character"),
+    make_option(c("-t", "--rmd_template"), type="character", default=NULL,
+                help="R Markdown template",
+                metavar="character"),
+    make_option(c("-o", "--output_html"), type="character", default=NULL,
+                help="Output HTML filename",
+                metavar="character")
+)
+
+opt_parser <- OptionParser(option_list=option_list)
+opt <- parse_args(opt_parser) 
+
+params = list(
+  meta_file = opt$idp_meta_file,
+  color_code_yaml = opt$color_code_yaml,
+  input_prefix = opt$input_prefix,
+  rlib = opt$rlib,
+  phenotype_name = opt$phenotype_name
+)
+
+rmarkdown::render(
+  opt$rmd_template, 
+  params = params, 
+  envir = new.env(),
+  output_file = opt$output_html
+)
