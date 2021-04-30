@@ -77,7 +77,7 @@ def fill_sbxcan_signif_criteria(config):
     arg = '--pval {} --max_idps {}'.format(
         config['signif_pval'], config['signif_max_idps']
     )
-    return arg
+    return arg, config['signif_max_idps']
 
 def fill_sbxcan_idp_weight(config):
     t1 = sh._try_to_format(

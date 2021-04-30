@@ -13,6 +13,9 @@ option_list <- list(
     make_option(c("-r", "--rlib"), type="character", default=NULL,
                 help="The path to report helper functions",
                 metavar="character"),
+    make_option(c("-n", "--ntop"), type="numeric", default=NULL,
+                help="Number of top IDP associations to show",
+                metavar="character"),
     make_option(c("-p", "--phenotype_name"), type="character", default=NULL,
                 help="Phenotype name to show in the report",
                 metavar="character"),
@@ -32,7 +35,8 @@ params = list(
   color_code_yaml = opt$color_code_yaml,
   input_prefix = opt$input_prefix,
   rlib = opt$rlib,
-  phenotype_name = opt$phenotype_name
+  phenotype_name = opt$phenotype_name,
+  ntop = opt$ntop
 )
 
 rmarkdown::render(

@@ -13,6 +13,7 @@ params:
   color_code_yaml: NA
   input_prefix: NA
   rlib: NA
+  ntop: 10
 title: "`r paste0('BrainXcan results for ', params$phenotype_name)`"
 ---
 
@@ -34,11 +35,12 @@ input_prefix = params$input_prefix
 meta_file = params$meta_file
 color_code_yaml = params$color_code_yaml
 phenotype_name = params$phenotype_name
+ntop = params$ntop
 ```
 
 ```{r load_meta}
 gannot = read.csv(meta_file)
-color_map = load_color_code_yaml(color_code)
+color_map = load_color_code_yaml(color_code_yaml)
 ```
 
 ```{r load_results}
@@ -85,17 +87,17 @@ Among `r n_pred_idps` IDPs (`r sum(xcandf$modality=="T1")` T1 and `r sum(xcandf$
 
 ```{r, vis_t1, fig.height=7, fig.width=8}
 idp_type = 'T1'
-pp = plot_bxcan_ordered(xcandf %>% filter(modality == idp_type), color_map)
+pp = plot_bxcan_ordered(xcandf %>% filter(modality == idp_type), color_map, z_thres)
 pp + ggtitle(paste0(phenotype_name, ' - ', idp_type))
-ggsave(paste0(out_prefix, '.brainxcan_zscore.', idp_type, '.png'), pp, height = 6, width = 8)
+# ggsave(paste0(out_prefix, '.brainxcan_zscore.', idp_type, '.png'), pp, height = 6, width = 8)
 ```
 
 
 ```{r, vis_dmri, fig.height=6, fig.width=8}
 idp_type = 'dMRI'
-pp = plot_bxcan_ordered(xcandf %>% filter(modality == idp_type), color_map)
+pp = plot_bxcan_ordered(xcandf %>% filter(modality == idp_type), color_map, z_thres)
 pp + ggtitle(paste0(phenotype_name, ' - ', idp_type))
-ggsave(paste0(out_prefix, '.brainxcan_zscore.', idp_type, '.png'), pp, height = 6, width = 8)
+# ggsave(paste0(out_prefix, '.brainxcan_zscore.', idp_type, '.png'), pp, height = 6, width = 8)
 ```
 
 ```{r load_mr}

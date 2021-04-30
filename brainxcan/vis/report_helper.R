@@ -11,7 +11,7 @@ load_color_code_yaml = function(fn) {
   res
 }
 
-plot_bxcan_ordered <- function(xcandf, color_map)
+plot_bxcan_ordered <- function(xcandf, color_map, z_thres)
 {
   pp = xcandf %>% 
     mutate(kk = reorder(region, zscore ^ 2, FUN = max)) %>% 
