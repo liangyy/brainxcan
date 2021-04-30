@@ -1,3 +1,54 @@
 # brainxcan
 
 S-BrainXcan software.
+
+TODO: More descriptive notes are coming soon!
+
+# Installation notes
+
+## Software dependencies
+
+The software is built upon both Python and R scripts along with some standalone executables.
+Here we provide a conda environment containing all the Python dependencies and `snakemake`.
+
+```
+conda env create -f environment.yml
+``` 
+
+Also, install [plink 1.9](https://www.cog-genomics.org/plink/) which will be used for LD clumping in MR analysis.
+
+By default, the pipeline call `python`, `Rscript`, and `plink` as is.
+And you can provide the path to the desired executables in the configuration file. For instance,
+
+```
+# in config.[name].yaml
+rscript_exe: 'path-to/Rscript' 
+python_exe: 'path-to/python'
+plink_exe: 'path-to/plink'
+``` 
+
+## Standalone R
+
+R dependencies are: `ggplot`, `dplyr`, `optparse`, `logging`, `rmarkdown`, `pdftools`, `patchwork`, `oro.nifti`, `data.table`, `pander`, `arrow`, `TwoSampleMR`.
+
+In below, we provide an example for installing R dependencies as a conda environment. 
+Any standalone R installation with these dependent packages being installed should work just fine.
+
+```
+$ conda create -n r_36 -y
+$ conda activate r_36
+(r_36) $ conda install -c r r
+(r_36) $ conda install -c conda-forge r-arrow
+(r_36) $ conda install -c conda-forge r-pdftools
+(r_36) $ conda install -c conda-forge r-gmp
+(r_36) $ conda install -c conda-forge r-rio
+(r_36) $ conda install -c conda-forge r-pander
+(r_36) $ R
+# inside R
+> install.packages(c('ggplot2', 'dplyr', 'logging', 'optparse', 'rmarkdown', 'pdftools', 'patchwork', 'oro.nifti', 'data.table', 'remotes'))
+> remotes::install_github("MRCIEU/TwoSampleMR")
+```
+
+
+
+
