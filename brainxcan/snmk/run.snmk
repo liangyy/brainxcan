@@ -26,8 +26,8 @@ sbxcan_vis = [
     '{outdir}/{prefix}.vis.dMRI.pdf'.format(**config)
 ]
 mr_vis = [
-    '{outdir}/{prefix}.{idp_name}.MR_vis.pdf', 
-    '{outdir}/{prefix}.{idp_name}.MR_sumstats.tsv'
+    '{outdir}/{prefix}_files/MR_results/{idp_name}.MR_vis.pdf', 
+    '{outdir}/{prefix}_files/MR_results/{idp_name}.MR_sumstats.tsv'
 ]
 sbxcan_report = '{outdir}/{prefix}.report.html'.format(**config)
 
@@ -41,7 +41,7 @@ rule sbxcan_t1:
     output:
         temp('{outdir}/{prefix}.sbrainxcan_t1.csv')
     log:
-        '{outdir}/logs/{prefix}.sbrainxcan_t1.log'
+        '{outdir}/{prefix}_files/logs/sbrainxcan_t1.log'
     shell:
         'export PYTHONPATH={config[brainxcan_path]}:$PYTHONPATH; \
          {config[python_exe]} \
@@ -61,7 +61,7 @@ rule sbxcan_dmri:
     output:
         temp('{outdir}/{prefix}.sbrainxcan_dmri.csv')
     log:
-        '{outdir}/logs/{prefix}.sbrainxcan_dmri.log'
+        '{outdir}/{prefix}_files/logs/sbrainxcan_dmri.log'
     shell:
         'export PYTHONPATH={config[brainxcan_path]}:$PYTHONPATH; \
          {config[python_exe]} \
@@ -79,7 +79,7 @@ rule sbxcan_merge:
     output:
         '{outdir}/{prefix}.sbrainxcan.csv'
     log:
-        '{outdir}/logs/{prefix}.sbrainxcan.log'
+        '{outdir}/{prefix}_files/logs/sbxcan_merge.log'
     shell:
         '{config[python_exe]} \
            {config[brainxcan_path]}/brainxcan/snmk/merge_bxcan.py \
@@ -91,9 +91,9 @@ checkpoint sbxcan_signif:
     input:
         '{outdir}/{prefix}.sbrainxcan.csv'
     output:
-        temp(directory('{outdir}/{prefix}/tmp_signif'))
+        temp(directory('{outdir}/{prefix}_files/.tmp_signif'))
     log:
-        '{outdir}/logs/{prefix}.sbxcan_signif.log'
+        '{outdir}/{prefix}_files/logs/sbxcan_signif.log'
     shell:
         'mkdir -p {output[0]}; \
          {config[python_exe]} \
@@ -106,13 +106,13 @@ rule mr:
     input:
         ld = ld_clump_yaml,
         gwas = config['gwas'],
-        idp_flag = '{outdir}/{prefix}/tmp_signif/{idp_modality}_{idp_code}.txt',
+        idp_flag = '{outdir}/{prefix}_files/.tmp_signif/{idp_modality}_{idp_code}.txt',
         idp = gwas_idp_files,
         snp = snp_bim_files
     output:
-        '{outdir}/{prefix}.{idp_modality}_{idp_code}.MR.rds'
+        '{outdir}/{prefix}_files/MR_results/{idp_modality}_{idp_code}.MR.rds'
     log:
-        '{outdir}/logs/{prefix}.{idp_modality}_{idp_code}.MR.log'
+        '{outdir}/{prefix}_files/logs/{idp_modality}_{idp_code}.mr.log'
     params:
         gwas_idp = params_gwas_idp,
     shell:
@@ -130,13 +130,13 @@ rule mr:
 
 rule mr_vis:
     input:
-        '{outdir}/{prefix}.{idp_modality}_{idp_code}.MR.rds',
-        '{outdir}/{prefix}/tmp_signif/{idp_modality}_{idp_code}.txt'
+        '{outdir}/{prefix}_files/MR_results/{idp_modality}_{idp_code}.MR.rds',
+        '{outdir}/{prefix}_files/.tmp_signif/{idp_modality}_{idp_code}.txt'
     output:
-        '{outdir}/{prefix}.{idp_modality}_{idp_code}.MR_vis.pdf',
-        '{outdir}/{prefix}.{idp_modality}_{idp_code}.MR_sumstats.tsv'
+        '{outdir}/{prefix}_files/MR_results/{idp_modality}_{idp_code}.MR_vis.pdf',
+        '{outdir}/{prefix}_files/MR_results/{idp_modality}_{idp_code}.MR_sumstats.tsv'
     log:
-        '{outdir}/logs/{prefix}.{idp_modality}_{idp_code}.MR_vis.log'
+        '{outdir}/{prefix}_files/logs/{idp_modality}_{idp_code}.mr_vis.log'
     shell:
         'export R_VIS_SRC={config[brainxcan_path]}/brainxcan/vis; \
           {config[rscript_exe]} \
@@ -155,14 +155,14 @@ rule sbxcan_vis:
     params:
         '{outdir}/{prefix}.vis'
     log:
-        '{outdir}/{prefix}.vis.log'
+        '{outdir}/{prefix}_files/logs/sbxcan_vis.log'
     shell:
         'export R_VIS_SRC={config[brainxcan_path]}/brainxcan/vis; \
          {config[rscript_exe]} \
            {config[brainxcan_path]}/brainxcan/vis/run_bxcan_vis.R \
            --brainxcan {input[0]} \
            --datadir {bxcan_vis_datadir} \
-           --output_prefix {params[0]}'
+           --output_prefix {params[0]} > {log} 2>&1'
 
 rule sbxcan_report:
     input:
@@ -174,6 +174,8 @@ rule sbxcan_report:
         '{outdir}/{prefix}.'
     output:
         '{outdir}/{prefix}.report.html'
+    log:
+        '{outdir}/{prefix}_files/logs/sbxcan_report.log'
     shell:
         '{config[rscript_exe]} \
            {config[brainxcan_path]}/brainxcan/vis/report_compilation.R \
@@ -184,7 +186,7 @@ rule sbxcan_report:
            --rmd_template {config[brainxcan_path]}/brainxcan/vis/report_template.Rmd \
            --phenotype_name {wildcards.prefix} \
            --ntop {signif_max_idps} \
-           --output_html {output[0]}'
+           --output_html {output[0]} > {log} 2>&1'
         
 
 def aggregate_chkpnt(wildcards, config=None):
@@ -193,9 +195,9 @@ def aggregate_chkpnt(wildcards, config=None):
     '''
     if config is not None:
         checkpoint_output = checkpoints.sbxcan_signif.get(**wildcards, **config).output[0]
-        wc_ = glob_wildcards('{outdir}/{prefix}/tmp_signif/{{idp_modality}}_{{idp_code}}.txt'.format(**config))
+        wc_ = glob_wildcards('{outdir}/{prefix}_files/.tmp_signif/{{idp_modality}}_{{idp_code}}.txt'.format(**config))
         files1 = expand(
-            os.path.join('{outdir}/{prefix}.{idp_modality}_{idp_code}.MR_vis.pdf'),
+            os.path.join('{outdir}/{prefix}_files/MR_results/{idp_modality}_{idp_code}.MR_vis.pdf'),
             zip,
             # **config,
             outdir=[ config['outdir'] for i in range(len(wc_.idp_modality)) ],
@@ -204,7 +206,7 @@ def aggregate_chkpnt(wildcards, config=None):
             idp_code=wc_.idp_code
         )
         files2 = expand(
-            os.path.join('{outdir}/{prefix}.{idp_modality}_{idp_code}.MR_sumstats.tsv'),
+            os.path.join('{outdir}/{prefix}_files/MR_results/{idp_modality}_{idp_code}.MR_sumstats.tsv'),
             zip,
             # **config,
             outdir=[ config['outdir'] for i in range(len(wc_.idp_modality)) ],
@@ -215,9 +217,9 @@ def aggregate_chkpnt(wildcards, config=None):
         return files1 + files2
     else:
         checkpoint_output = checkpoints.sbxcan_signif.get(**wildcards).output[0]
-        wc_ = glob_wildcards('{outdir}/{prefix}/tmp_signif/{{idp_modality}}_{{idp_code}}.txt'.format(**wildcards))
+        wc_ = glob_wildcards('{outdir}/{prefix}_files/.tmp_signif/{{idp_modality}}_{{idp_code}}.txt'.format(**wildcards))
         files1 = expand(
-            os.path.join('{outdir}/{prefix}.{idp_modality}_{idp_code}.MR_vis.pdf'),
+            os.path.join('{outdir}/{prefix}_files/MR_results/{idp_modality}_{idp_code}.MR_vis.pdf'),
             zip,
             # **config,
             outdir=[ wildcards['outdir'] for i in range(len(wc_.idp_modality)) ],
@@ -226,7 +228,7 @@ def aggregate_chkpnt(wildcards, config=None):
             idp_code=wc_.idp_code
         )
         files2 = expand(
-            os.path.join('{outdir}/{prefix}.{idp_modality}_{idp_code}.MR_sumstats.tsv'),
+            os.path.join('{outdir}/{prefix}_files/MR_results/{idp_modality}_{idp_code}.MR_sumstats.tsv'),
             zip,
             # **config,
             outdir=[ wildcards['outdir'] for i in range(len(wc_.idp_modality)) ],
