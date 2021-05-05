@@ -14,21 +14,28 @@ load_color_code_yaml = function(fn) {
 gen_shape_map = function() {
   data.frame(
     lr = c('left', 'right', 'NA', 'vermis'),
-    code = c('\u25C0', '\u25B6', '\u25A0', '\u25A0')
+    # code = c('\u25C0', '\u25B6', '\u25A0', '\u25A0'),
+    code = c(62, 60, 20, 20),
+    stringsAsFactors = F
   )
 }
 
 plot_bxcan_ordered <- function(xcandf, color_map, z_thres)
 {
   shape_map = gen_shape_map()
-  pp = xcandf %>% mutate(lr = as.character(left_or_right)) %>% 
-    left_join(shape_map, by = 'lr')) %>% select(-lr) %>% 
-    mutate(kk = reorder(region, zscore ^ 2, FUN = max)) %>% 
-    group_by(kk) %>% mutate(zmax = max(zscore), zmin = min(zscore)) %>% ungroup() %>%  
+  tmp = xcandf %>% mutate(lr = as.character(left_or_right))
+  tmp$lr[is.na(tmp$lr)] = 'NA'
+  tmp = tmp %>%
+    left_join(shape_map, by = 'lr') %>% select(-lr) %>%
+    mutate(kk = reorder(region, zscore ^ 2, FUN = max))
+  tmp2 = tmp %>%
+    group_by(kk) %>% summarize(zmax = max(zscore), zmin = min(zscore)) %>% ungroup()
+  pp = tmp %>%  
     ggplot() + 
     geom_hline(yintercept = c(-z_thres, z_thres), col = 'gray') + 
-    geom_segment(aes(x = kk, xend = kk, y = zmin, yend = zmax), color = 'black', size = 0.1) + 
-    geom_text(aes(x = kk, y = zscore, color = subtype, label = code), family = "Arial Unicode MS") + 
+    geom_segment(data = tmp2, aes(x = kk, xend = kk, y = zmin, yend = zmax), color = 'black', size = 0.1) + 
+    # geom_text(aes(x = kk, y = zscore, color = subtype, label = code), family = "Arial Unicode MS") + 
+    geom_point(aes(x = kk, y = zscore, color = subtype, shape = code), size = 4) +
     scale_shape_identity() + 
     coord_flip() +
     scale_color_manual(values = color_map) + 
