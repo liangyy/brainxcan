@@ -43,5 +43,6 @@ rmarkdown::render(
   opt$rmd_template, 
   params = params, 
   envir = new.env(),
-  output_file = opt$output_html
+  output_dir = dirname(opt$output_html),
+  output_file = basename(opt$output_html)
 )
