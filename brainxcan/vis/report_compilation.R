@@ -31,7 +31,6 @@ opt_parser <- OptionParser(option_list=option_list)
 opt <- parse_args(opt_parser) 
 
 params = list(
-  # meta_file = opt$idp_meta_file,
   color_code_yaml = opt$color_code_yaml,
   input_prefix = opt$input_prefix,
   rlib = opt$rlib,
@@ -44,5 +43,6 @@ rmarkdown::render(
   params = params, 
   envir = new.env(),
   output_dir = dirname(opt$output_html),
-  output_file = basename(opt$output_html)
+  output_file = basename(opt$output_html),
+  knit_root_dir = dirname(opt$output_html)
 )

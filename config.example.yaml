@@ -1,5 +1,5 @@
 # ------------------------- Input/Output paths ------------------------------- #
-
+# for the paths, please use full path to avoid issues
 datadir: 'path to brainxcan data'
 outdir: 'output directory'
 prefix: 'output prefix'

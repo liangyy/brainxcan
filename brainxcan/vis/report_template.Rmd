@@ -9,7 +9,6 @@ output:
     theme: cosmo
 params:
   phenotype_name: "phenotype of interest"
-  meta_file: NA
   color_code_yaml: NA
   input_prefix: NA
   rlib: NA
@@ -148,7 +147,7 @@ for(i in mr_idps$IDP) {
   if(length(fig_fn) > 1) {
     next
   }
-  info = gannot %>% filter(IDP == i)
+  info = allxcan_annot %>% filter(IDP == i)
   msg = i
   if(nrow(info) == 1) {
     msg = info$notes

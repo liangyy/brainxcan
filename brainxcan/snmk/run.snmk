@@ -172,7 +172,7 @@ rule sbxcan_report:
         '{outdir}/{prefix}.vis.T1.pdf',
         lambda wildcards: aggregate_chkpnt(wildcards)
     params:
-        '{outdir}/{prefix}'
+        '{prefix}'
     output:
         '{outdir}/{prefix}.report.html'
     log:
