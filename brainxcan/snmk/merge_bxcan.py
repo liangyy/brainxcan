@@ -9,6 +9,9 @@ if __name__ == '__main__':
     parser.add_argument('--t1', help='''
         Input S-BrainXcan result for T1 IDPs.
     ''')
+    parser.add_argument('--idp_meta_file', help='''
+        A meta file for annotating IDPs.
+    ''')
     parser.add_argument('--output', help='''
         Output table.
     ''')
@@ -34,8 +37,13 @@ if __name__ == '__main__':
     df2['modality'] = 'T1'
     logging.info('{} IDPs in total.'.format(df2.shape[0]))
     
+    logging.info('Loading the IDP meta file.')
+    meta = pd.read_csv(args.idp_meta_file)
+    
     logging.info('Saving outputs.')
     df = pd.concat([df1, df2], axis=0)
+    df = pd.merge(df, meta.drop(columns=['t1_or_dmri', 'ukb_link']), on='IDP', how='left')
+    df.fillna('NA', inplace=True)
     df.sort_values(by='pval').to_csv(args.output, index=False)
     
     logging.info('Done.')

@@ -4,9 +4,9 @@ option_list <- list(
     make_option(c("-i", "--input_prefix"), type="character", default=NULL,
                 help="The prefix of all these BrainXcan analysis results",
                 metavar="character"),
-    make_option(c("-m", "--idp_meta_file"), type="character", default=NULL,
-                help="A meta file for annotating IDPs",
-                metavar="character"),
+    # make_option(c("-m", "--idp_meta_file"), type="character", default=NULL,
+    #             help="A meta file for annotating IDPs",
+    #             metavar="character"),
     make_option(c("-c", "--color_code_yaml"), type="character", default=NULL,
                 help="Color coding",
                 metavar="character"),
@@ -31,7 +31,7 @@ opt_parser <- OptionParser(option_list=option_list)
 opt <- parse_args(opt_parser) 
 
 params = list(
-  meta_file = opt$idp_meta_file,
+  # meta_file = opt$idp_meta_file,
   color_code_yaml = opt$color_code_yaml,
   input_prefix = opt$input_prefix,
   rlib = opt$rlib,

@@ -85,6 +85,7 @@ rule sbxcan_merge:
            {config[brainxcan_path]}/brainxcan/snmk/merge_bxcan.py \
            --dmri {input[0]} \
            --t1 {input[1]} \
+           --idp_meta_file {bxcan_idp_meta} \
            --output {output[0]} > {log} 2>&1'
 
 checkpoint sbxcan_signif:
@@ -181,7 +182,6 @@ rule sbxcan_report:
            {config[brainxcan_path]}/brainxcan/vis/report_compilation.R \
            --input_prefix {params[0]} \
            --color_code_yaml {bxcan_color_code} \
-           --idp_meta_file {bxcan_idp_meta} \
            --rlib {config[brainxcan_path]}/brainxcan/vis/report_helper.R \
            --rmd_template {config[brainxcan_path]}/brainxcan/vis/report_template.Rmd \
            --phenotype_name {wildcards.prefix} \

@@ -39,7 +39,7 @@ ntop = params$ntop
 ```
 
 ```{r load_meta}
-gannot = read.csv(meta_file)
+# gannot = read.csv(meta_file)
 color_map = load_color_code_yaml(color_code_yaml)
 ```
 
@@ -51,7 +51,7 @@ allxcan = sbxcan
 ```
 
 ```{r subset_to_idp_main_results}
-allxcan_annot = allxcan %>% left_join(gannot %>% select(-t1_or_dmri), by = "IDP") 
+allxcan_annot = allxcan # %>% left_join(gannot %>% select(-t1_or_dmri), by = "IDP") 
   
 ## PC's should have region==PC
 ind = substr(allxcan_annot$IDP, 1, 2) == "PC"
