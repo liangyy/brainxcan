@@ -35,7 +35,7 @@ plot_bxcan_ordered <- function(xcandf, color_map, z_thres)
     geom_hline(yintercept = c(-z_thres, z_thres), col = 'gray') + 
     geom_segment(data = tmp2, aes(x = kk, xend = kk, y = zmin, yend = zmax), color = 'black', size = 0.1) + 
     # geom_text(aes(x = kk, y = zscore, color = subtype, label = code), family = "Arial Unicode MS") + 
-    geom_point(aes(x = kk, y = zscore, color = subtype, shape = code), size = 4) +
+    geom_point(aes(x = kk, y = zscore, color = subtype, shape = code), size = 4, alpha = 0.7) +
     scale_shape_identity() + 
     coord_flip() +
     scale_color_manual(values = color_map) + 
