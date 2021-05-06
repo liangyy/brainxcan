@@ -36,14 +36,39 @@ p = list(T1 = list(), dMRI = list())
 for(tag in tags) {
   logging::loginfo(paste0('Tag = ', tag))
   idp_type = meta_list[[tag]]$type
-  p[[idp_type]][[length(p[[idp_type]]) + 1]] = vis_by_tag(opt$datadir, tag, df, 'zscore') + ggtitle(meta_list[[tag]]$full_name)
+  ptmp = vis_by_tag(opt$datadir, tag, df, 'zscore')
+  ptmp = add_title(ptmp, meta_list[[tag]]$full_name, size = 20, hjust = 0.2)
+  p[[idp_type]][[length(p[[idp_type]]) + 1]] = ptmp
 }
 for(kk in names(p)) {
   npp = length(p[[kk]])
   if(npp > 0) {
     pp = wrap_plots(p[[kk]], ncol = 1, nrow = npp)
-    ggsave(paste0(opt$output_prefix, '.', kk, '.pdf'), pp, height = 4 * npp, width = 10)
+    ggsave(paste0(opt$output_prefix, '.', kk, '.pdf'), pp, height = 3 * npp, width = 10)
   }
+}
+
+logging::loginfo('Plotting region labels.')
+df = read.csv(paste0(opt$datadir, '/idp_meta_data.csv'))
+tbss = F
+# plab = list()
+for(tag in tags) {
+  logging::loginfo(paste0('Tag = ', tag))
+  title = meta_list[[tag]]$full_name
+  save_name = tag
+  if(substr(tag, 1, 4) == 'TBSS') {
+    if(isTRUE(tbss)) {
+      next
+    } else {
+      tbss = T
+      title = 'Diffusion MRI'
+      save_name = 'TBSS'
+    }
+  }
+  p = vis_region(opt$datadir, tag, df)
+  p = p + ggtitle(title)
+  fig = plotly::ggplotly(p)
+  htmlwidgets::saveWidget(plotly::as_widget(fig), paste0(opt$output_prefix, '.label_', save_name, '.html'))
 }
 
 
