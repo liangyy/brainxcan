@@ -46,9 +46,10 @@ $ conda activate r_36
 (r_36) $ conda install -c conda-forge r-sf
 (r_36) $ conda install -c conda-forge r-stars
 (r_36) $ conda install -c conda-forge r-plotly
+(r_36) $ conda install -c conda-forge r-ggnewscale
 (r_36) $ R
 # inside R
-> install.packages(c('ggplot2', 'dplyr', 'logging', 'optparse', 'rmarkdown', 'patchwork', 'oro.nifti', 'data.table', 'remotes', 'raster', 'stars'))
+> install.packages(c('ggplot2', 'dplyr', 'logging', 'optparse', 'rmarkdown', 'patchwork', 'oro.nifti', 'data.table', 'remotes', 'raster', 'rgeos'))
 > remotes::install_github("MRCIEU/TwoSampleMR")
 ```
 

@@ -68,7 +68,7 @@ for(tag in tags) {
   p = vis_region(opt$datadir, tag, df)
   p = p + ggtitle(title)
   fig = plotly::ggplotly(p)
-  htmlwidgets::saveWidget(plotly::as_widget(fig), paste0(opt$output_prefix, '.label_', save_name, '.html'))
+  htmlwidgets::saveWidget(plotly::as_widget(fig), paste0(opt$output_prefix, '.label_', save_name, '.html'), selfcontained = T)
 }
 
 

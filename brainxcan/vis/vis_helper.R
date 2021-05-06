@@ -183,7 +183,11 @@ add_title = function(p, label, tt = 10, bb = -20, ...) {
 convert_to_sf = function(dd) {
   ## Convert your data.frame to a raster object
   r <- raster::rasterFromXYZ(dd)
-  
+ 
+  ## some ugly check but have to ..
+  if(names(r) != 'value') {
+    names(r) = 'value'
+  } 
   ## Extract polygons
   pp <- raster::rasterToPolygons(r, dissolve=TRUE)
   
