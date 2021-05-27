@@ -249,4 +249,10 @@ def fill_bxcan_report_data(config):
         OrderedDict([('datadir', config['datadir'])])
     )
     return meta, color
-    
+
+def fill_bxcan_region_vis(config):
+    sh._try_fill_config(config, 'bxcan_region_vis', default_params.BXCAN_REGION_VIS)
+    if config['bxcan_region_vis'] is True:
+        return '--region_vis'
+    else:
+        return ''

@@ -9,7 +9,9 @@ option_list <- list(
                 metavar="character"),
     make_option(c("-d", "--datadir"), type="character", default=NULL,
                 help="Meta data directory",
-                metavar="character")
+                metavar="character"),
+    make_option(c("-r", "--region_vis"), action="store_true",
+              help="Also generate interactive region htmls along the way")
 )
 
 opt_parser <- OptionParser(option_list=option_list)
@@ -48,28 +50,33 @@ for(kk in names(p)) {
   }
 }
 
-logging::loginfo('Plotting region labels.')
-df = read.csv(paste0(opt$datadir, '/idp_meta_data.csv'))
-tbss = F
-# plab = list()
-for(tag in tags) {
-  logging::loginfo(paste0('Tag = ', tag))
-  title = meta_list[[tag]]$full_name
-  save_name = tag
-  if(substr(tag, 1, 4) == 'TBSS') {
-    if(isTRUE(tbss)) {
-      next
-    } else {
-      tbss = T
-      title = 'Diffusion MRI'
-      save_name = 'TBSS'
+if(isTRUE(opt$region_vis)) {
+  dirn = paste0(opt$output_prefix, '.region_vis')
+  dir.create(dirn)
+  logging::loginfo('Plotting region labels.')
+  df = read.csv(paste0(opt$datadir, '/idp_meta_data.csv'))
+  tbss = F
+  # plab = list()
+  for(tag in tags) {
+    logging::loginfo(paste0('Tag = ', tag))
+    title = meta_list[[tag]]$full_name
+    save_name = tag
+    if(substr(tag, 1, 4) == 'TBSS') {
+      if(isTRUE(tbss)) {
+        next
+      } else {
+        tbss = T
+        title = 'Diffusion MRI'
+        save_name = 'TBSS'
+      }
     }
+    p = vis_region(opt$datadir, tag, df)
+    p = p + ggtitle(title)
+    fig = plotly::ggplotly(p)
+    htmlwidgets::saveWidget(plotly::as_widget(fig), paste0(dirn, '/label_', save_name, '.html'), selfcontained = T)
   }
-  p = vis_region(opt$datadir, tag, df)
-  p = p + ggtitle(title)
-  fig = plotly::ggplotly(p)
-  htmlwidgets::saveWidget(plotly::as_widget(fig), paste0(opt$output_prefix, '.label_', save_name, '.html'), selfcontained = T)
 }
+
 
 
 

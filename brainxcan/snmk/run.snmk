@@ -18,6 +18,7 @@ args_mr_ld_panel, mr_ld_panel_files = fill_mr_ld_panel(config)
 fill_exe(config)
 bxcan_vis_datadir = fill_bxcan_vis_datadir(config)
 bxcan_idp_meta, bxcan_color_code = fill_bxcan_report_data(config)
+args_bxcan_region_vis = fill_bxcan_region_vis(config)
 
 # output files
 sbxcan = '{outdir}/{prefix}.sbrainxcan.csv'.format(**config)
@@ -163,6 +164,7 @@ rule sbxcan_vis:
            {config[brainxcan_path]}/brainxcan/vis/run_bxcan_vis.R \
            --brainxcan {input[0]} \
            --datadir {bxcan_vis_datadir} \
+           {args_bxcan_region_vis} \
            --output_prefix {params[0]} > {log} 2>&1'
 
 rule sbxcan_report:
@@ -259,4 +261,3 @@ rule SBrainXcanAndMR:
         sbxcan,
         # '{outdir}/{prefix}.MR_output.txt'.format(**config)
         lambda wildcards: aggregate_chkpnt(wildcards, config)
-          

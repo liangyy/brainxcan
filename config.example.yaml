@@ -26,6 +26,11 @@ sample_size: 'column name of GWAS sample size'
 allele_frequency: 'column name of allele frequency'
 
 
+# ------------------------- Generating BrainXcan region ---------------------- #
+# if want to generate interactive html to present the regions
+bxcan_region_vis: true # or false 
+
+
 # ------------------------- Optional: default values are listed -------------- #
 # no need to specify if you'd like to go with default
 
