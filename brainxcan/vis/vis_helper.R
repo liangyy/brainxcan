@@ -33,17 +33,32 @@ prep_brain_img_and_region_sf = function(region_img, bg_img, vis_meta) {
   tt = reshape2::melt(region_img) %>% filter(value != 0)
   bb = reshape2::melt(bg_img) %>% filter(value != 0) %>% rename(bg = value)
   bb = left_join(bb, tt, by = c('Var1', 'Var2', 'Var3'))
-  mid1 = bg_img@dim_[2]
-  mid2 = bg_img@dim_[3]
-  mid3 = bg_img@dim_[4]
-  d1 = vis_meta$slide_position[1]
-  d2 = vis_meta$slide_position[2]
-  d3 = vis_meta$slide_position[3]
-  tmp = rbind(
-    bb %>% filter(Var1 == floor(mid1 / d1)) %>% mutate(direction = 'a1') %>% rename(x = Var2, y = Var3, ref = Var1),
-    bb %>% filter(Var2 == floor(mid2 / d2)) %>% mutate(direction = 'a2') %>% rename(x = Var1, y = Var3, ref = Var2),
-    bb %>% filter(Var3 == floor(mid3 / d3)) %>% mutate(direction = 'a3') %>% rename(x = Var1, y = Var2, ref = Var3)
-  )
+  # mid1 = bg_img@dim_[2]
+  # mid2 = bg_img@dim_[3]
+  # mid3 = bg_img@dim_[4]
+  df_slices = vis_meta$slide_position
+  res = list()
+  for(i in 1 : nrow(df_slices)) {
+    dim_ = df_slices$dim[i]
+    idx_ = df_slices$idx[i]
+    if(dim_ == 1) {
+      tmp = bb %>% filter(Var1 == idx_) %>% mutate(direction = paste0('slice', i)) %>% rename(x = Var2, y = Var3, ref = Var1)
+    } else if(dim_ == 2) {
+      tmp = bb %>% filter(Var2 == idx_) %>% mutate(direction = paste0('slice', i)) %>% rename(x = Var1, y = Var3, ref = Var2)
+    } else if(dim_ == 3) {
+      tmp = bb %>% filter(Var3 == idx_) %>% mutate(direction = paste0('slice', i)) %>% rename(x = Var1, y = Var2, ref = Var3)
+    }
+    res[[length(res) + 1]] = tmp
+  }
+  # d1 = vis_meta$slide_position[1]
+  # d2 = vis_meta$slide_position[2]
+  # d3 = vis_meta$slide_position[3]
+  # tmp = rbind(
+  #   bb %>% filter(Var1 == floor(d1)) %>% mutate(direction = 'a1') %>% rename(x = Var2, y = Var3, ref = Var1),
+  #   bb %>% filter(Var2 == floor(d2)) %>% mutate(direction = 'a2') %>% rename(x = Var1, y = Var3, ref = Var2),
+  #   bb %>% filter(Var3 == floor(d3)) %>% mutate(direction = 'a3') %>% rename(x = Var1, y = Var2, ref = Var3)
+  # )
+  tmp = do.call(rbind, res)
   
   outline = list()
   for(kk in unique(tmp$direction)) {
@@ -90,7 +105,7 @@ vis_by_tag = function(datadir, tag, df, score) {
       geom_sf(data = res$region_sf, aes(fill = value_category)) +
       scale_fill_manual(values = kk$color_code, na.value = 'transparent', na.translate = FALSE) +
       coord_sf() + 
-      facet_grid(.~direction, labeller = label_both)
+      facet_wrap(.~direction, labeller = label_both, ncol = 3)
       
   } else {
     df_color$value = df_color[[score]]
@@ -103,7 +118,7 @@ vis_by_tag = function(datadir, tag, df, score) {
       geom_sf(data = res$region_sf, aes(fill = value_category)) +
       scale_fill_manual(values = kk$color_code, na.value = 'transparent', na.translate = FALSE) +
       coord_sf() + 
-      facet_grid(.~direction, labeller = label_both)
+      facet_wrap(~direction, labeller = label_both, ncol = 3)
   }
   
   p = p + 
@@ -150,7 +165,7 @@ vis_region = function(datadir, tag, df) {
       aes(color = region)
     ) +
     coord_sf() + 
-    facet_grid(. ~ direction, labeller = label_both); p
+    facet_wrap(~ direction, labeller = label_both, ncol = 3)
   
   p = p + 
   theme(
@@ -245,16 +260,16 @@ vis_by_tag_DEPRECATED = function(datadir, tag, df, score) {
   tt = reshape2::melt(img2) %>% filter(value != 0)
   bb = reshape2::melt(vis_bg) %>% filter(value != 0) %>% rename(bg = value)
   bb = left_join(bb, tt, by = c('Var1', 'Var2', 'Var3'))
-  mid1 = vis_bg@dim_[2]
-  mid2 = vis_bg@dim_[3]
-  mid3 = vis_bg@dim_[4]
+  # mid1 = vis_bg@dim_[2]
+  # mid2 = vis_bg@dim_[3]
+  # mid3 = vis_bg@dim_[4]
   d1 = vis_meta$slide_position[1]
   d2 = vis_meta$slide_position[2]
   d3 = vis_meta$slide_position[3]
   tmp = rbind(
-    bb %>% filter(Var1 == floor(mid1 / d1)) %>% mutate(direction = 'a1') %>% rename(x = Var2, y = Var3, ref = Var1),
-    bb %>% filter(Var2 == floor(mid2 / d2)) %>% mutate(direction = 'a2') %>% rename(x = Var1, y = Var3, ref = Var2),
-    bb %>% filter(Var3 == floor(mid3 / d3)) %>% mutate(direction = 'a3') %>% rename(x = Var1, y = Var2, ref = Var3)
+    bb %>% filter(Var1 == floor(d1)) %>% mutate(direction = 'a1') %>% rename(x = Var2, y = Var3, ref = Var1),
+    bb %>% filter(Var2 == floor(d2)) %>% mutate(direction = 'a2') %>% rename(x = Var1, y = Var3, ref = Var2),
+    bb %>% filter(Var3 == floor(d3)) %>% mutate(direction = 'a3') %>% rename(x = Var1, y = Var2, ref = Var3)
   )
   
   if(score == 'zscore') {
