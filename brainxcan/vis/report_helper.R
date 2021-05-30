@@ -23,7 +23,7 @@ gen_shape_map = function() {
 plot_bxcan_ordered <- function(xcandf, color_map, z_thres)
 {
   shape_map = gen_shape_map()
-  tmp = xcandf %>% mutate(lr = as.character(left_or_right))
+  tmp = xcandf %>% mutate(lr = as.character(side))
   tmp$lr[is.na(tmp$lr)] = 'NA'
   tmp = tmp %>%
     left_join(shape_map, by = 'lr') %>% select(-lr) %>%
