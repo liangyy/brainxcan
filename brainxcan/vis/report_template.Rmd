@@ -60,7 +60,7 @@ ind = substr(allxcan_annot$IDP, 1, 2) == "PC"
 allxcan_annot$subtype[ind] = allxcan$IDP[ind]
 
 ## limit to IDP main results: T1 and TBSS-based dMRI
-xcandf = allxcan_annot %>% filter(subtype %in% names(color_map))
+xcandf = allxcan_annot %>% filter(subtype %in% names(color_map)) %>% rename(side = left_or_right)
 ```
 
 
@@ -110,12 +110,12 @@ xcandf_w_mr$link[ is.na(xcandf_w_mr$`Phenotype -> IDP`) ] = NA
 
 The top `r ntop` associations for dMRI are 
 ```{r dmri_top_n}
-xcandf_w_mr %>% select(IDP, modality, subtype, region, zscore, pval, `IDP -> Phenotype`, `Phenotype -> IDP`, link) %>% filter(pval < p_thres) %>% filter(modality=="dMRI") %>% arrange(pval) %>% select(-modality) %>% head(ntop) %>% pander
+xcandf_w_mr %>% select(IDP, modality, subtype, region, side, zscore, pval, `IDP -> Phenotype`, `Phenotype -> IDP`, link) %>% filter(pval < p_thres) %>% filter(modality=="dMRI") %>% arrange(pval) %>% select(-modality) %>% head(ntop) %>% pander
 ```
 
 The top `r ntop` associations for T1 are 
 ```{r t1_top_n, results='asis'}
-xcandf_w_mr %>% select(IDP, modality, subtype, region, zscore, pval, `IDP -> Phenotype`, `Phenotype -> IDP`, link) %>% filter(pval < p_thres) %>% filter(modality == "T1") %>% arrange(pval) %>% select(-modality) %>% head(ntop) %>% pander
+xcandf_w_mr %>% select(IDP, modality, subtype, region, side, zscore, pval, `IDP -> Phenotype`, `Phenotype -> IDP`, link) %>% filter(pval < p_thres) %>% filter(modality == "T1") %>% arrange(pval) %>% select(-modality) %>% head(ntop) %>% pander
 ```
 
 # Visualization of associations in the brain
