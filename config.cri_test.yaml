@@ -15,7 +15,7 @@ allele_frequency: 'frequency'
 chr: 'chromosome'
 
 # model_type: 'ridge'
-# idp_type: 'original'
+# idp_type: 'residual'
 signif_pval: 1e-8
 signif_max_idps: 5
 # ld_clump_yaml: '{datadir}/mr/ld_clump.yaml'

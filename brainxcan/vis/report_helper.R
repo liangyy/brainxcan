@@ -15,7 +15,7 @@ gen_shape_map = function() {
   data.frame(
     lr = c('left', 'right', 'NA', 'vermis'),
     # code = c('\u25C0', '\u25B6', '\u25A0', '\u25A0'),
-    code = c(62, 60, 20, 20),
+    code = c(60, 62, 20, 20),
     stringsAsFactors = F
   )
 }

@@ -12,7 +12,7 @@ SPEARMAN_CUTOFF = 0.1
 BXCAN_REGION_VIS = False
 
 IDP_TYPE = [
-    'original',  # default
+    'residual',  # default
     ['original', 'residual']  # options 
 ]
 MODEL_TYPE = [ 

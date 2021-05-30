@@ -1,8 +1,6 @@
 # brainxcan
 
-S-BrainXcan software.
-
-TODO: More descriptive notes are coming soon!
+S-BrainXcan takes GWAS as input and return the association between GWAS phenotype and a list of brain image-derived phenotypes.
 
 # Installation notes
 
@@ -52,6 +50,8 @@ $ conda activate r_36
 > install.packages(c('ggplot2', 'dplyr', 'logging', 'optparse', 'rmarkdown', 'patchwork', 'oro.nifti', 'data.table', 'remotes', 'raster', 'rgeos'))
 > remotes::install_github("MRCIEU/TwoSampleMR")
 ```
+
+
 
 
 
