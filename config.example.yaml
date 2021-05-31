@@ -27,7 +27,7 @@ allele_frequency: 'column name of allele frequency'
 
 # ------------------------- Generating BrainXcan region ---------------------- #
 # if want to generate interactive html to present the regions
-bxcan_region_vis: true # or false 
+bxcan_region_vis: True # or False 
 
 
 # ------------------------- Optional: default values are listed -------------- #

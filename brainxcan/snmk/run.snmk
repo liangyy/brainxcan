@@ -19,7 +19,7 @@ fill_exe(config)
 bxcan_vis_datadir = fill_bxcan_vis_datadir(config)
 bxcan_idp_meta, bxcan_color_code = fill_bxcan_report_data(config)
 args_bxcan_region_vis = fill_bxcan_region_vis(config)
-
+print(args_bxcan_region_vis)
 # output files
 sbxcan = '{outdir}/{prefix}.sbrainxcan.csv'.format(**config)
 sbxcan_vis = [
