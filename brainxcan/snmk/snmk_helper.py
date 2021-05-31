@@ -13,7 +13,7 @@ import brainxcan.snmk._snmk_helper as sh
 #            idp_name=glob_wildcards(os.path.join(checkpoint_output, '{idp_name}.txt')).idp_name)
 
 def check_required_args(config):
-    required = ['gwas', 'gwas_pop', 'datadir', 'chr', 'non_effect_allele', 'effect_allele', 'snpid', 'prefix', 'brainxcan_path']
+    required = ['gwas', 'datadir', 'chr', 'non_effect_allele', 'effect_allele', 'snpid', 'prefix', 'brainxcan_path']
     sh._check_list_all_in(required, config)
 
 def fill_spearman_cutoff(config):
@@ -210,6 +210,7 @@ def fill_snp_bim(config):
     return arg, files
 
 def fill_mr_ld_panel(config):
+    sh._try_fill_config(config, 'gwas_pop', default_params.GWAS_POP)
     sh._check_val_in_pool(config['gwas_pop'], default_params.GWAS_POPS)
     sh._try_fill_config(config, 'mr_ld_panel_pattern', default_params.MR_LD_PANEL_PATTERN)
     arg = sh._try_to_format(

@@ -9,7 +9,6 @@ brainxcan_path: 'path to brainxcan repo'
 # ------------------------- GWAS formatting information ---------------------- #
 
 gwas: 'path to GWAS file (format: csv(.gz), tsv(.gz), parquet'
-gwas_pop: 'ancestry population of the gwas (used for MR). Options are populations in 1000G: AFR, AMR, EAS, EUR, SAS'
 snpid: 'column name of GWAS SNP RSID'
 effect_allele: 'column name of GWAS effect allele'
 non_effect_allele: 'column name of GWAS non-effect allele'
@@ -33,6 +32,9 @@ bxcan_region_vis: true # or false
 
 # ------------------------- Optional: default values are listed -------------- #
 # no need to specify if you'd like to go with default
+
+# ancestry population of the gwas (used for MR). Options are populations in 1000G: AFR, AMR, EAS, EUR, SAS
+gwas_pop: 'EUR'
 
 # IDP prediction model type: ridge or elastic_net
 model_type: 'ridge'

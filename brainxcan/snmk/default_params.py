@@ -19,6 +19,7 @@ MODEL_TYPE = [
     'ridge', # default
     ['ridge', 'elastic_net'] # options
 ]
+GWAS_POP = 'EUR'
 GWAS_POPS = ['EUR', 'SAS', 'AMR', 'EAS', 'AFR']
 
 GENO_COV_PATTERN = '{datadir}/geno_covar/chr{chr_num}.banded.npz'

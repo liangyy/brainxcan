@@ -5,7 +5,6 @@ datadir: '/gpfs/data/im-lab/nas40t2/yanyul/data/brainxcan_data'
 # prefix: 'test'
 # brainxcan_path: '/gpfs/data/im-lab/nas40t2/yanyul/GitHub/brainxcan'
 
-gwas_pop: 'EUR'
 snpid: 'variant_id'
 effect_allele: 'effect_allele'
 non_effect_allele: 'non_effect_allele'
