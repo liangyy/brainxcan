@@ -4,7 +4,7 @@ S-BrainXcan takes GWAS as input and return the association between GWAS phenotyp
 
 BrainXcan manuscript [link](todo).
 
-Software documentation [link](https://liangyy.github.io/brainxcan-docs/docs/index.html).
+Software documentation (Quick start) [link](https://liangyy.github.io/brainxcan-docs/docs/index.html).
 
 BrainXcan database [link](zenodo-link).
 
