@@ -2,6 +2,8 @@
 
 S-BrainXcan takes GWAS as input and return the association between GWAS phenotype and a list of brain image-derived phenotypes.
 
+Software documentation [link](https://liangyy.github.io/brainxcan-docs/docs/index.html).
+
 # Installation notes
 
 ## Software dependencies
