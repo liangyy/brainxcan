@@ -4,6 +4,8 @@ S-BrainXcan takes GWAS as input and return the association between GWAS phenotyp
 
 Software documentation [link](https://liangyy.github.io/brainxcan-docs/docs/index.html).
 
+Analysis scripts [link](https://github.com/liangyy/ukb_idp_genetic_arch).
+
 # Installation notes
 
 ## Software dependencies
