@@ -37,7 +37,7 @@ plink_exe: 'path-to/plink'
 
 R dependencies are: `ggplot2`, `dplyr`, `optparse`, `logging`, `rmarkdown`, `pdftools`, `patchwork`, `oro.nifti`, `data.table`, `pander`, `arrow`, `TwoSampleMR`.
 
-In below, we provide an example for installing R dependencies as a conda environment. 
+Below, we provide an example for installing R dependencies as a conda environment. 
 Any standalone R installation with these dependent packages being installed should work just fine.
 
 ```
