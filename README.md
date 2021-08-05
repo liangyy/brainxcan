@@ -10,6 +10,8 @@ BrainXcan database [link](zenodo-link).
 
 Analysis scripts [link](https://github.com/liangyy/ukb_idp_genetic_arch).
 
+**[https://github.com/liangyy/brainxcan](https://github.com/liangyy/brainxcan) is deprecated.** Please go to [https://github.com/hakyimlab/brainxcan](https://github.com/hakyimlab/brainxcan) for latest BrainXcan software.
+
 # Installation notes
 
 ## Software dependencies
