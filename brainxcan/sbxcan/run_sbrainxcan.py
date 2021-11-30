@@ -1,6 +1,7 @@
 import re
 import pandas as pd
 import numpy as np
+import scipy.stats as sp
 import pathlib
 from collections import OrderedDict 
 from brainxcan.sbxcan.util.misc import read_table
@@ -11,6 +12,7 @@ BASE_PAIR = {
     'G': 'C',
     'C': 'G'
 }
+GC_NUMBER = 0.456
 
 def check_flip(a1, a2, b1, b2):
     res = []
@@ -257,6 +259,14 @@ def load_cov_meta(fn):
     fn = fn + '.snp_meta.parquet'
     return pd.read_parquet(fn)
 
+def genomic_control(zscore):
+    chisq = np.power(zscore, 2)
+    lambda_gc = np.median(chisq) / GC_NUMBER
+    chisq_adj = chisq / lambda_gc
+    z_adj = np.sqrt(chisq_adj) * np.sign(zscore)
+    return z_adj, lambda_gc   
+    
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(prog='run_sbrainxcan.py', description='''
@@ -286,14 +296,28 @@ if __name__ == '__main__':
     parser.add_argument('--spearman_cutoff', type=float, default=0.1, help='''
         The CV Spearman cutoff applied to models. 
     ''')
-    parser.add_argument('--output', help='''
-        The output CSV filename.
-        Will return both marginal test result and also the susieR result.
+    parser.add_argument('--empirical_null', action='store_true', help='''
+        If specified, will report z-score adjusted by empirical null (based on 
+        random IDP prediction models).  
+        The default number of repeats is 1000 and the random seed is 1.
+        Set these values in --empirical_null_nrepeat and --empirical_null_seed
     ''')
-    parser.add_argument('--z_ld_weight', type=float, default=1e-4, help='''
-        LD = (1 - z_ld_weight) * LD + z_ld_weight * (Z @ Z.T)
-        to avoid mis-specified LD.
+    parser.add_argument('--empirical_null_nrepeat', default=1000, 
+        type=int, help='''
+        The number of repeats when obtaining the empirical null
     ''')
+    parser.add_argument('--empirical_null_seed', default=1, 
+        type=int, help='''
+        The random seed when obtaining the empirical null
+    ''')
+    parser.add_argument('--output_prefix', help='''
+        The output CSV file prefix.
+        Will return marginal test result.
+    ''')
+    # parser.add_argument('--z_ld_weight', type=float, default=1e-4, help='''
+    #     LD = (1 - z_ld_weight) * LD + z_ld_weight * (Z @ Z.T)
+    #     to avoid mis-specified LD.
+    # ''')
     args = parser.parse_args()
     
     from tqdm import tqdm
@@ -325,6 +349,21 @@ if __name__ == '__main__':
     nidp = len(idp_names)
     nsnp_total = (df_weight.iloc[:, 4:].values != 0).sum(axis=0)
     logging.info('IDP SNP = {} and number of IDPs = {}'.format(df_weight.shape[0], nidp))
+    
+    nrepeat_null = 0
+    if args.empirical_null is True:
+        nrepeat_null = args.args.empirical_null_nrepeat
+        logging.info(f'''
+            Generating IDP weights for the empirical null: 
+            nrepeat = {nrepeat_null} and seed = {args.empirical_null_seed}.''')
+        np.random.seed(args.empirical_null_seed)
+        null_weights = np.random.normal(size=(df_weight.shape[0], nrepeat_null))
+        df_weight = pd.concat([ 
+            df_weight, 
+            pd.DataFrame(
+                null_weights, 
+                columns=[ f'null_{i}' for i in range(nrepeat_null) ]),
+            axis=1)
     
     logging.info('Harmonizing GWAS and IDP weights.')
     # harmonize GWAS and IDP weight table so that they have the same set of 
@@ -417,7 +456,15 @@ if __name__ == '__main__':
     S_D = np.sqrt(D.diagonal())
     beta_brainxcan = numer_b / np.power(S_D, 2)
     z_brainxcan = numer_z / S_D
-   
+    if args.empirical_null is True:
+        z_null = z_brainxcan[nrepeat_null :]
+        z_brainxcan = z_brainxcan[: nrepeat_null]
+        varz_null = np.var(z_null)
+        z_adj_emp = z_brainxcan / np.sqrt(varz_null)
+    
+    logging.info('Generating adjusted BrainXcan z-score.')
+    z_adj_gc, lambda_gc = genomic_control(z_brainxcan)
+    logging.info(f'GC lambda = {lambda_gc}.')
     # logging.info('Step3: Running susieR.')
     # Sigma =  D / S_D[:, np.newaxis] / S_D[np.newaxis, ]
     # susie_pip, susie_cs = run_susie_wrapper(z_brainxcan, Sigma, params={'z_ld_weight': args.z_ld_weight})
@@ -427,14 +474,28 @@ if __name__ == '__main__':
         'IDP': idp_names,
         'bhat': beta_brainxcan,
         'pval': z2p(z_brainxcan),
+        'pval_adj': z2p(z_adj_gc),
         'nsnp_used': nsnp_used,
         'nsnp_total': nsnp_total
         # 'pip': susie_pip,
         # 'cs95': susie_cs
     })
+    df_adj = pd.DataFrame({
+        'name': [ 'lambda_gc' ],
+        'value': [ lambda_gc ]
+    })
+    if args.empirical_null is True:
+        df_res['pval_adj_emp'] = z2p(z_adj_emp)
+        df_adj = pd.concat([
+            df_adj, 
+            pd.DataFrame({
+                'name': df_weight.columns[-nrepeat_null :], 'value': z_null })],
+            axis=0).reset_index(drop=True)
+            
     df_res = pd.merge(df_res, df_perf, on='IDP', how='left')
     df_res.fillna('NA', inplace=True)
-    df_res.sort_values(by='pval').to_csv(args.output, index=False)
+    df_res.sort_values(by='pval').to_csv(args.output + '.csv', index=False)
+    df_adj = df_adj.to_csv(args.output + '.adj_meta.csv', index=False)
     
     logging.info('Done.')
     
