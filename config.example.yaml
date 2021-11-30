@@ -57,6 +57,10 @@ rscript_exe: 'Rscript'
 python_exe: 'python'
 plink_exe: 'plink'
 
+# generate empirical zscores in BrainXcan
+bxcan_empirical_z: True
+bxcan_empirical_z_seed: 1
+bxcan_empirical_z_nrepeat: 1000
 
 # -------------------------- ABOUT DEPENDENT DATA --------------------------- #
 # specify dependent data separately

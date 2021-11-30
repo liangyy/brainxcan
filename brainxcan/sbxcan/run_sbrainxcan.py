@@ -1,7 +1,6 @@
 import re
 import pandas as pd
 import numpy as np
-import scipy.stats as sp
 import pathlib
 from collections import OrderedDict 
 from brainxcan.sbxcan.util.misc import read_table
@@ -264,8 +263,7 @@ def genomic_control(zscore):
     lambda_gc = np.median(chisq) / GC_NUMBER
     chisq_adj = chisq / lambda_gc
     z_adj = np.sqrt(chisq_adj) * np.sign(zscore)
-    return z_adj, lambda_gc   
-    
+    return z_adj, lambda_gc    
 
 if __name__ == '__main__':
     import argparse
@@ -300,7 +298,9 @@ if __name__ == '__main__':
         If specified, will report z-score adjusted by empirical null (based on 
         random IDP prediction models).  
         The default number of repeats is 1000 and the random seed is 1.
-        Set these values in --empirical_null_nrepeat and --empirical_null_seed
+        Set these values in --empirical_null_nrepeat and --empirical_null_seed.
+        IMPORTANT NOTE: Currently, the empirical null only works for dense 
+        models (e.g. ridge models).
     ''')
     parser.add_argument('--empirical_null_nrepeat', default=1000, 
         type=int, help='''
@@ -459,12 +459,7 @@ if __name__ == '__main__':
     if args.empirical_null is True:
         z_null = z_brainxcan[nrepeat_null :]
         z_brainxcan = z_brainxcan[: nrepeat_null]
-        varz_null = np.var(z_null)
-        z_adj_emp = z_brainxcan / np.sqrt(varz_null)
     
-    logging.info('Generating adjusted BrainXcan z-score.')
-    z_adj_gc, lambda_gc = genomic_control(z_brainxcan)
-    logging.info(f'GC lambda = {lambda_gc}.')
     # logging.info('Step3: Running susieR.')
     # Sigma =  D / S_D[:, np.newaxis] / S_D[np.newaxis, ]
     # susie_pip, susie_cs = run_susie_wrapper(z_brainxcan, Sigma, params={'z_ld_weight': args.z_ld_weight})
@@ -474,28 +469,24 @@ if __name__ == '__main__':
         'IDP': idp_names,
         'bhat': beta_brainxcan,
         'pval': z2p(z_brainxcan),
-        'pval_adj': z2p(z_adj_gc),
+        'z_brainxcan': z_brainxcan,
         'nsnp_used': nsnp_used,
         'nsnp_total': nsnp_total
         # 'pip': susie_pip,
         # 'cs95': susie_cs
     })
-    df_adj = pd.DataFrame({
-        'name': [ 'lambda_gc' ],
-        'value': [ lambda_gc ]
-    })
+    
     if args.empirical_null is True:
-        df_res['pval_adj_emp'] = z2p(z_adj_emp)
-        df_adj = pd.concat([
-            df_adj, 
-            pd.DataFrame({
-                'name': df_weight.columns[-nrepeat_null :], 'value': z_null })],
-            axis=0).reset_index(drop=True)
+        # df_res['pval_adj_emp'] = z2p(z_adj_emp)
+        df_adj = pd.DataFrame({
+            'name': df_weight.columns[-nrepeat_null :], 
+            'value': z_null })
+        df_adj['rand'] = args.empirical_null_seed
+        df_adj = df_adj.to_csv(args.output + '.emp_null.csv', index=False)
             
     df_res = pd.merge(df_res, df_perf, on='IDP', how='left')
     df_res.fillna('NA', inplace=True)
     df_res.sort_values(by='pval').to_csv(args.output + '.csv', index=False)
-    df_adj = df_adj.to_csv(args.output + '.adj_meta.csv', index=False)
     
     logging.info('Done.')
     
