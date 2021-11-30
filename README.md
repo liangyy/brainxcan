@@ -2,11 +2,11 @@
 
 S-BrainXcan takes GWAS as input and return the association between GWAS phenotype and a list of brain image-derived phenotypes.
 
-BrainXcan manuscript [link](todo).
+BrainXcan manuscript [link](https://www.medrxiv.org/content/10.1101/2021.06.01.21258159v1).
 
 Software documentation (Quick start) [link](https://liangyy.github.io/brainxcan-docs/docs/index.html).
 
-BrainXcan database [link](zenodo-link).
+BrainXcan database [link](http://doi.org/10.5281/zenodo.4895174).
 
 Analysis scripts [link](https://github.com/liangyy/ukb_idp_genetic_arch).
 
@@ -39,7 +39,7 @@ plink_exe: 'path-to/plink'
 
 R dependencies are: `ggplot2`, `dplyr`, `optparse`, `logging`, `rmarkdown`, `pdftools`, `patchwork`, `oro.nifti`, `data.table`, `pander`, `arrow`, `TwoSampleMR`.
 
-In below, we provide an example for installing R dependencies as a conda environment. 
+Below, we provide an example for installing R dependencies as a conda environment. 
 Any standalone R installation with these dependent packages being installed should work just fine.
 
 ```

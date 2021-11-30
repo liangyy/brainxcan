@@ -10,6 +10,9 @@ BXCAN_IDP_META = '{datadir}/bxcan_vis/idp_meta_data.csv'
 BXCAN_COLOR_CODE = '{datadir}/bxcan_vis/report_color_code.yaml'
 SPEARMAN_CUTOFF = 0.1
 BXCAN_REGION_VIS = False
+BXCAN_EMPIRICAL_Z = True
+BXCAN_EMPIRICAL_Z_SEED = 1
+BXCAN_EMPIRICAL_Z_NREPEAT = 1000
 
 IDP_TYPE = [
     'residual',  # default

@@ -257,3 +257,21 @@ def fill_bxcan_region_vis(config):
         return '--region_vis'
     else:
         return ''
+
+def fill_empz(config):
+    sh._try_fill_config(config, 'bxcan_empirical_z', default_params.BXCAN_EMPIRICAL_Z)
+    sh._try_fill_config(config, 'bxcan_empirical_z_seed', default_params.BXCAN_EMPIRICAL_Z_SEED)
+    sh._try_fill_config(config, 'bxcan_empirical_z_nrepeat', default_params.BXCAN_EMPIRICAL_Z_NREPEAT)
+    if config['model_type'] is 'elastic_net' and config['bxcan_empirical_z'] is True:
+        'WARNING: since model_type = elastic_net, we disable empirical z-score calculation in BrainXcan'
+        config['bxcan_empirical_z'] = False
+
+def fill_bxcan_empz_args(config):
+    if config['bxcan_empirical_z'] is False:
+        res = ''
+    else:
+        res = ' '.join([
+            '--empirical_null', 
+            '--empirical_null_seed {}'.format(config['bxcan_empirical_z_seed']), 
+            '--empirical_null_nrepeat {}'.format(config['bxcan_empirical_z_nrepeat'])])
+    return res
