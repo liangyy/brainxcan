@@ -258,13 +258,32 @@ def fill_bxcan_region_vis(config):
     else:
         return ''
 
+def fill_bxcan_null(config):
+    fill_empz(config)
+    fill_permz(config)
+    if config['bxcan_ldblock_perm'] is not None and config['bxcan_empirical_z']:
+        print('WARNING: both empirical z-score and LD block-based z-score calculation in BrainXcan are used. Your random seed could be over-written!')
+
+def fill_bxcan_null_args(config):
+    empz = fill_bxcan_empz_args(config)
+    permz = fill_bxcan_permz_args(config)
+    return f'{empz} {permz}', permz
+
 def fill_empz(config):
     sh._try_fill_config(config, 'bxcan_empirical_z', default_params.BXCAN_EMPIRICAL_Z)
     sh._try_fill_config(config, 'bxcan_empirical_z_seed', default_params.BXCAN_EMPIRICAL_Z_SEED)
     sh._try_fill_config(config, 'bxcan_empirical_z_nrepeat', default_params.BXCAN_EMPIRICAL_Z_NREPEAT)
     if config['model_type'] is 'elastic_net' and config['bxcan_empirical_z'] is True:
-        'WARNING: since model_type = elastic_net, we disable empirical z-score calculation in BrainXcan'
+        print('WARNING: since model_type = elastic_net, we disable empirical z-score calculation in BrainXcan')
         config['bxcan_empirical_z'] = False
+
+def fill_permz(config):
+    sh._try_fill_config(config, 'bxcan_ldblock_perm', default_params.BXCAN_LDBLOCK_PERM)
+    sh._try_fill_config(config, 'bxcan_ldblock_perm_seed', default_params.BXCAN_LDBLOCK_PERM_SEED)
+    sh._try_fill_config(config, 'bxcan_ldblock_perm_nrepeat', default_params.BXCAN_LDBLOCK_PERM_NREPEAT)
+    if config['model_type'] is 'elastic_net' and config['bxcan_ldblock_perm'] is not None:
+        'WARNING: since model_type = elastic_net, we disable LD block based permutation calculation in BrainXcan'
+        config['bxcan_ldblock_perm'] = None
 
 def fill_bxcan_empz_args(config):
     if config['bxcan_empirical_z'] is False:
@@ -274,4 +293,14 @@ def fill_bxcan_empz_args(config):
             '--empirical_null', 
             '--empirical_null_seed {}'.format(config['bxcan_empirical_z_seed']), 
             '--empirical_null_nrepeat {}'.format(config['bxcan_empirical_z_nrepeat'])])
+    return res
+
+def fill_bxcan_permz_args(config):
+    if config['bxcan_ldblock_perm'] is None:
+        res = ''
+    else:
+        res = ' '.join([
+            '--ldblock_perm {}'.format(config['bxcan_ldblock_perm']), 
+            '--ldblock_perm_seed {}'.format(config['bxcan_empirical_z_seed']), 
+            '--ldblock_perm_nrepeat {}'.format(config['bxcan_empirical_z_nrepeat'])])
     return res
