@@ -57,10 +57,16 @@ rscript_exe: 'Rscript'
 python_exe: 'python'
 plink_exe: 'plink'
 
-# generate empirical zscores in BrainXcan
-bxcan_empirical_z: True
+# generate empirical zscores with simulated weights in BrainXcan
+bxcan_empirical_z: False
 bxcan_empirical_z_seed: 1
 bxcan_empirical_z_nrepeat: 1000
+
+# generate empirical zscores with LD block-based permutation in BrainXcan
+## path to the BED file (TAB-delimited base0 with header chr, start, stop)
+bxcan_ldblock_perm: null 
+bxcan_ldblock_perm_seed: 1
+bxcan_ldblock_perm_nrepeat: 10
 
 # -------------------------- ABOUT DEPENDENT DATA --------------------------- #
 # specify dependent data separately

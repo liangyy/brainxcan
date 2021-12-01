@@ -1,7 +1,26 @@
 import re
-def get_emp_null(fn):
-    return re.sub('.csv$', '.emp_null.csv', fn)
-    
+# def get_emp_null(fn):
+#     return re.sub('.csv$', '.emp_null.csv', fn)
+# def get_perm_null(fn):
+#     return re.sub('.csv$', '.perm_null.csv', fn)
+def get_null_file(fn, name):
+    return re.sub('.csv$', f'.{name}.csv', fn)
+def append_null_to_df(df, fn, null_name):
+    null_fn = get_null_file(fn, null_name)
+    if os.path.exists(null_fn):
+        df_null = pd.read_csv(null_fn)
+        print(f'Loading {null_name} from {fn}: num. of records = {df_null.shape[0]}')
+        df.append(df_null)
+def add_null_to_result(df_result, df_null, null_name, output_prefix):
+    if len(df_null) > 0:
+        df_null = pd.concat(df_null, axis=0).reset_index(drop=True)
+        print(f'Forming adjusted z-score using {null_name} as null (n = {df_null.shape[0]})')
+        df_null.to_csv(output_prefix + f'.{null_name}.csv', index=False)
+        varz_null = np.var(df_null.value)
+        zcol, pcol = f'z_adj_{null_name}', f'pval_adj_{null_name}'
+        df_result[zcol] = df_result.z_brainxcan / np.sqrt(varz_null)
+        df_result[pcol] = z2p(df_result[zcol])  
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(prog='merge_bxcan.py', description='''
@@ -35,25 +54,21 @@ if __name__ == '__main__':
     from brainxcan.sbxcan.run_sbrainxcan import genomic_control
     
     df_null = []
+    df_perm = []
     logging.info('Loading S-BrainXcan dMRI.')
     df1 = pd.read_csv(args.dmri)
     df1['modality'] = 'dMRI'
     logging.info('{} IDPs in total.'.format(df1.shape[0]))
-    null_dmri = get_emp_null(args.dmri)
-    if os.path.exists(null_dmri):
-        null_dmri = pd.read_csv(null_dmri)
-        logging.info(f'Loading empirical nulls from dMRI: nrepeat = {null_dmri.shape[0]}')
-        df_null.append(null_dmri)
+    append_null_to_df(df_null, args.dmri, 'emp_null')
+    append_null_to_df(df_perm, args.dmri, 'perm_null')
+    
     
     logging.info('Loading S-BrainXcan T1.')
     df2 = pd.read_csv(args.t1)
     df2['modality'] = 'T1'
     logging.info('{} IDPs in total.'.format(df2.shape[0]))
-    null_t1 = get_emp_null(args.t1)
-    if os.path.exists(null_t1):
-        null_t1 = pd.read_csv(null_t1)
-        logging.info(f'Loading empirical nulls from T1: nrepeat = {null_t1.shape[0]}')
-        df_null.append(null_t1)
+    append_null_to_df(df_null, args.t1, 'emp_null')
+    append_null_to_df(df_perm, args.t1, 'perm_null')
     
     logging.info('Generating adjusted BrainXcan z-score.')
     df = pd.concat([df1, df2], axis=0)
@@ -61,12 +76,8 @@ if __name__ == '__main__':
     df['pval_adj_gc'] = z2p(df.z_adj_gc)
     logging.info(f'GC lambda = {lambda_gc}.')
     
-    if len(df_null) > 0:
-        df_null = pd.concat(df_null, axis=0).reset_index(drop=True)
-        df_null.to_csv(args.output_prefix + '.null.csv', index=False)
-        varz_null = np.var(df_null.value)
-        df['z_adj_emp'] = df.z_brainxcan / np.sqrt(varz_null)
-        df['pval_adj_emp'] = z2p(df.z_adj_emp)       
+    add_null_to_result(df, df_null, 'emp_null', args.output_prefix)
+    add_null_to_result(df, df_perm, 'perm_null', args.output_prefix)
  
     logging.info('Loading the IDP meta file.')
     meta = pd.read_csv(args.idp_meta_file)
