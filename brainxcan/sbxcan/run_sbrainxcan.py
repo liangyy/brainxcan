@@ -345,14 +345,11 @@ if __name__ == '__main__':
         args.idp_weight, 
         spearman_cutoff=args.spearman_cutoff
     )
-    idp_names = list(df_weight.columns[4:])
-    nidp = len(idp_names)
-    nsnp_total = (df_weight.iloc[:, 4:].values != 0).sum(axis=0)
-    logging.info('IDP SNP = {} and number of IDPs = {}'.format(df_weight.shape[0], nidp))
+    logging.info('IDP SNP = {} and number of IDPs = {}'.format(df_weight.shape[0], df_weight.shape[1] - 4))
     
     nrepeat_null = 0
     if args.empirical_null is True:
-        nrepeat_null = args.args.empirical_null_nrepeat
+        nrepeat_null = args.empirical_null_nrepeat
         logging.info(f'''
             Generating IDP weights for the empirical null: 
             nrepeat = {nrepeat_null} and seed = {args.empirical_null_seed}.''')
@@ -362,9 +359,13 @@ if __name__ == '__main__':
             df_weight, 
             pd.DataFrame(
                 null_weights, 
-                columns=[ f'null_{i}' for i in range(nrepeat_null) ]),
+                columns=[ f'null_{i}' for i in range(nrepeat_null) ])],
             axis=1)
-    
+   
+    idp_names = list(df_weight.columns[4:])
+    nidp = len(idp_names)
+    nsnp_total = (df_weight.iloc[:, 4:].values != 0).sum(axis=0)
+     
     logging.info('Harmonizing GWAS and IDP weights.')
     # harmonize GWAS and IDP weight table so that they have the same set of 
     # SNPs (including direction).
@@ -456,22 +457,20 @@ if __name__ == '__main__':
     S_D = np.sqrt(D.diagonal())
     beta_brainxcan = numer_b / np.power(S_D, 2)
     z_brainxcan = numer_z / S_D
-    if args.empirical_null is True:
-        z_null = z_brainxcan[nrepeat_null :]
-        z_brainxcan = z_brainxcan[: nrepeat_null]
     
     # logging.info('Step3: Running susieR.')
     # Sigma =  D / S_D[:, np.newaxis] / S_D[np.newaxis, ]
     # susie_pip, susie_cs = run_susie_wrapper(z_brainxcan, Sigma, params={'z_ld_weight': args.z_ld_weight})
          
     logging.info('Saving outputs.')
+    offset = -nrepeat_null if args.empirical_null is True else len(idp_names)
     df_res = pd.DataFrame({
-        'IDP': idp_names,
-        'bhat': beta_brainxcan,
-        'pval': z2p(z_brainxcan),
-        'z_brainxcan': z_brainxcan,
-        'nsnp_used': nsnp_used,
-        'nsnp_total': nsnp_total
+        'IDP': idp_names[: offset],
+        'bhat': beta_brainxcan[: offset],
+        'pval': z2p(z_brainxcan[: offset]),
+        'z_brainxcan': z_brainxcan[: offset],
+        'nsnp_used': nsnp_used[: offset],
+        'nsnp_total': nsnp_total[: offset]
         # 'pip': susie_pip,
         # 'cs95': susie_cs
     })
@@ -480,13 +479,13 @@ if __name__ == '__main__':
         # df_res['pval_adj_emp'] = z2p(z_adj_emp)
         df_adj = pd.DataFrame({
             'name': df_weight.columns[-nrepeat_null :], 
-            'value': z_null })
+            'value': z_brainxcan[-nrepeat_null :] })
         df_adj['rand'] = args.empirical_null_seed
-        df_adj = df_adj.to_csv(args.output + '.emp_null.csv', index=False)
+        df_adj = df_adj.to_csv(args.output_prefix + '.emp_null.csv', index=False)
             
     df_res = pd.merge(df_res, df_perf, on='IDP', how='left')
     df_res.fillna('NA', inplace=True)
-    df_res.sort_values(by='pval').to_csv(args.output + '.csv', index=False)
+    df_res.sort_values(by='pval').to_csv(args.output_prefix + '.csv', index=False)
     
     logging.info('Done.')
     

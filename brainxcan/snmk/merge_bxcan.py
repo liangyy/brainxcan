@@ -31,7 +31,8 @@ if __name__ == '__main__':
     )
     import pandas as pd
     import numpy as np
-    from brainxcan.sbxcan.run_sbrainxcan import p2z, genomic_control
+    from brainxcan.sbxcan.util.misc import z2p
+    from brainxcan.sbxcan.run_sbrainxcan import genomic_control
     
     df_null = []
     logging.info('Loading S-BrainXcan dMRI.')
@@ -41,7 +42,7 @@ if __name__ == '__main__':
     null_dmri = get_emp_null(args.dmri)
     if os.path.exists(null_dmri):
         null_dmri = pd.read_csv(null_dmri)
-        logging.info('Loading empirical nulls from dMRI: nrepeat = {null_dmri.shape[0]}')
+        logging.info(f'Loading empirical nulls from dMRI: nrepeat = {null_dmri.shape[0]}')
         df_null.append(null_dmri)
     
     logging.info('Loading S-BrainXcan T1.')
@@ -51,12 +52,13 @@ if __name__ == '__main__':
     null_t1 = get_emp_null(args.t1)
     if os.path.exists(null_t1):
         null_t1 = pd.read_csv(null_t1)
-        logging.info('Loading empirical nulls from T1: nrepeat = {null_t1.shape[0]}')
+        logging.info(f'Loading empirical nulls from T1: nrepeat = {null_t1.shape[0]}')
         df_null.append(null_t1)
     
     logging.info('Generating adjusted BrainXcan z-score.')
     df = pd.concat([df1, df2], axis=0)
     df['z_adj_gc'], lambda_gc = genomic_control(df.z_brainxcan)
+    df['pval_adj_gc'] = z2p(df.z_adj_gc)
     logging.info(f'GC lambda = {lambda_gc}.')
     
     if len(df_null) > 0:
@@ -64,7 +66,8 @@ if __name__ == '__main__':
         df_null.to_csv(args.output_prefix + '.null.csv', index=False)
         varz_null = np.var(df_null.value)
         df['z_adj_emp'] = df.z_brainxcan / np.sqrt(varz_null)
-    
+        df['pval_adj_emp'] = z2p(df.z_adj_emp)       
+ 
     logging.info('Loading the IDP meta file.')
     meta = pd.read_csv(args.idp_meta_file)
     
