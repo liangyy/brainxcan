@@ -12,6 +12,8 @@ BASE_PAIR = {
     'C': 'G'
 }
 GC_NUMBER = 0.456
+N_IDP_META_COLS = 4
+N_GWAS_META_COLS = 5
 
 def check_flip(a1, a2, b1, b2):
     res = []
@@ -81,7 +83,7 @@ def harmonize_gwas_and_weight(gwas, weight):
     But only keep the ones that present in both.
     '''
     df_common = pd.merge(
-        gwas[['snpid', 'chr', 'effect_allele', 'non_effect_allele']],
+        gwas[['snpid', 'chr', 'position', 'effect_allele', 'non_effect_allele']],
         weight[['snpid', 'chr', 'effect_allele', 'non_effect_allele']],
         on=['snpid', 'chr'],
         suffixes=['_gwas', '_weight']
@@ -102,14 +104,14 @@ def harmonize_gwas_and_weight(gwas, weight):
     df_common.rename(columns={'effect_allele_weight': 'effect_allele', 'non_effect_allele_weight': 'non_effect_allele'}, inplace=True)
 
     df_gwas = pd.merge(
-        df_common[['snpid', 'chr', 'effect_allele', 'non_effect_allele']], 
+        df_common[['snpid', 'chr', 'position', 'effect_allele', 'non_effect_allele']], 
         gwas.drop(columns=['effect_allele', 'non_effect_allele']), 
         on=['snpid', 'chr']
     )
     df_gwas.effect_size = df_gwas.effect_size * flip_factor
     
     df_weight = pd.merge(
-        df_common[['snpid', 'chr', 'effect_allele', 'non_effect_allele']], 
+        df_common[['snpid', 'chr', 'position', 'effect_allele', 'non_effect_allele']], 
         weight.drop(columns=['effect_allele', 'non_effect_allele']), 
         on=['snpid', 'chr']
     )
@@ -160,12 +162,12 @@ def _parse_gwas_args(args_list, mode='effect_size'):
     if have_effect_size is True:
         desired_cols = [
             'snpid', 'non_effect_allele', 'effect_allele', 
-            'effect_size', 'effect_size_se', 'chr'
+            'effect_size', 'effect_size_se', 'chr', 'position'
         ]
     else:
         desired_cols = [
             'snpid', 'non_effect_allele', 'effect_allele', 
-            'zscore', 'allele_frequency', 'sample_size', 'chr'
+            'zscore', 'allele_frequency', 'sample_size', 'chr', 'position'
         ]
     fn, rename_dict = _parse_args(args_list, desired_cols, no_raise=True)
     for k, v in rename_dict.items():
@@ -225,7 +227,7 @@ def load_gwas(gwas_args_list):
     
     desired_cols = [
         'snpid', 'non_effect_allele', 'effect_allele', 
-        'effect_size', 'effect_size_se', 'chr'
+        'effect_size', 'effect_size_se', 'chr', 'position'
     ]
     return df[desired_cols]
 
@@ -250,7 +252,7 @@ def load_idp(args_list, spearman_cutoff=0.1):
     df_perf = df_perf[ df_perf.CV_Spearman >= spearman_cutoff ].reset_index(drop=True)
     cols_to_keep = list(df.columns[:4]) + list(df_perf.IDP)
     df = df[ cols_to_keep ].copy()
-    df = df[ df.iloc[:, 4:].values.sum(axis=1) != 0 ].reset_index(drop=True)
+    df = df[ df.iloc[:, N_IDP_META_COLS:].values.sum(axis=1) != 0 ].reset_index(drop=True)
     return df, df_perf
 
 def load_cov_meta(fn):
@@ -265,6 +267,63 @@ def genomic_control(zscore):
     z_adj = np.sqrt(chisq_adj) * np.sign(zscore)
     return z_adj, lambda_gc    
 
+def _cleanup_ldblock(df):
+    df = df.sort_values(by=['chr', 'start', 'end'])
+    df = df[ df.chr.isin([ str(i) for i in range(1, 23) ])]
+    df = df.reset_index(drop=True)
+    for i in range(1, 23):
+        kk = df[df.chr == str(i)]
+        for j in range(kk.shape[0] - 1):
+            if kk.end[j] != kk.start[j + 1]:
+                raise ValueError(f'''
+                    LD block file has non-concatenating blocks at 
+                    chr = {i}, end({j}) = {kk.end[j]}, start({j + 1}) = {kk.start[j + 1]}
+                ''')
+    return df
+
+def load_ldblock(fn):
+    df = pd.read_csv(fn, sep='\t')
+    df.chr = [ re.sub('^chr', '', i) for i in df.chr ]
+    # BED file use base0
+    df.start = df.start.astype(int) + 1
+    df.end = df.end.astype(int) + 1
+    df = _cleanup_ldblock(df)
+    return df
+
+def get_idxs_by_block(meta, block):
+    res = []
+    block_sub = block[block.chr == chrm]
+    meta_w_idx = pd.DataFrame({'chr': meta.chr, 'pos': meta.position, idx: [ i for i in range(meta.shape[0])]})
+    chrm = meta_w_idx.chr[0]
+    meta_i = meta_w_idx[ meta_w_idx.pos < block_sub.start[0] ]
+    if meta_i.shape[0] > 0:
+        res.append(list(meta_i.idx))
+    for i in range(block_sub.shape[0]):
+        meta_i = meta_w_idx[ meta_w_idx.pos < block_sub.end[i] & meta_w_idx.pos >= block_sub.start[i] ]
+        if meta_i.shape[0] > 0:
+            res.append(list(meta_i.idx))
+    meta_i = meta_w_idx[ meta_w_idx.pos >= block_sub.end[0] ]
+    if meta_i.shape[0] > 0:
+        res.append(list(meta_i.idx))
+    return res
+
+def simulate_weights(weight, nrepeat):
+    null_weight = np.random.normal(size=(weight.shape[0], nrepeat))
+    null_weight[np.isnan(weight)] = np.nan
+    return null_weight
+
+def permute_weights(weight, weight_meta, ld_blocks, nrepeat):
+    n = weight.shape[1]
+    perm_weight = np.zeros((weight.shape[0], nrepeat * n))
+    idxs_by_block = get_idxs_by_block(weight_meta, ld_blocks)
+    for i in range(nrepeat):
+        idxs = []
+        block_idxs = np.random.permutation(len(idxs_by_block))
+        for j in block_idxs:
+            idxs += idxs_by_block[j]
+        perm_weight[:, i * n : (i + 1) * n] = weight[:, idxs]
+    return perm_weight
+        
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(prog='run_sbrainxcan.py', description='''
@@ -278,11 +337,11 @@ if __name__ == '__main__':
     parser.add_argument('--gwas', nargs='+', help='''
         Need to have column names for: 
             snpid, non_effect_allele, effect_allele, 
-            effect_size, effect_size_se, chr.
+            effect_size, effect_size_se, chr, position.
         If there is no effect_size avaliable, it could 
         impute effect_size from zscore, allele_frequency, 
         sample_size.
-        The format is: snpid:rsid_col, ..., chr:chr
+        The format is: snpid:rsid_col, ..., chr:chr, position:position
     ''')
     parser.add_argument('--idp_weight', nargs='+', help='''
         The IDP weight table is in parquet format.
@@ -293,6 +352,19 @@ if __name__ == '__main__':
     ''')
     parser.add_argument('--spearman_cutoff', type=float, default=0.1, help='''
         The CV Spearman cutoff applied to models. 
+    ''')
+    parser.add_argument('--ldblock_perm', default=None, help='''
+        If want to obtain adjusted BrainXcan by LD block-based permutation, 
+        use this argument and specific the LD block BED file here. 
+    ''')
+    parser.add_argument('--ldblock_perm_seed', default=1, 
+        type=int, help='''
+        The random seed when obtaining the LD block-based permutation.
+        IMPORTANT NOTE: Random seed will be over-written by --empirical_null_seed
+    ''')
+    parser.add_argument('--ldblock_perm_nrepeat', default=10, 
+        type=int, help='''
+        The number of repeats when obtaining the LD block-based permutation
     ''')
     parser.add_argument('--empirical_null', action='store_true', help='''
         If specified, will report z-score adjusted by empirical null (based on 
@@ -345,7 +417,20 @@ if __name__ == '__main__':
         args.idp_weight, 
         spearman_cutoff=args.spearman_cutoff
     )
-    logging.info('IDP SNP = {} and number of IDPs = {}'.format(df_weight.shape[0], df_weight.shape[1] - 4))
+    idp_names = list(df_weight.columns[N_IDP_META_COLS:])
+    nidp = len(idp_names)
+    nsnp_total = (df_weight.iloc[:, N_IDP_META_COLS:].values != 0).sum(axis=0)
+    logging.info('IDP SNP = {} and number of IDPs = {}'.format(df_weight.shape[0], nidp))
+    
+    nrepeat_perm = 0
+    if args.ldblock_perm is not None:
+        nrepeat_perm = args.ldblock_perm_nrepeat
+        logging.info(f'''
+            Generating permuted weights by LD block:
+            nrepeat = {nrepeat_perm} and seed = {args.ldblock_perm_seed}''')
+        np.random.seed(args.ldblock_perm_seed)
+        ld_blocks = load_ldblock(args.ldblock_perm)
+        idp_names += [ f'perm{j}_idp{k}' for j in range(nrepeat_perm) for k in range(nidp) ]
     
     nrepeat_null = 0
     if args.empirical_null is True:
@@ -354,17 +439,9 @@ if __name__ == '__main__':
             Generating IDP weights for the empirical null: 
             nrepeat = {nrepeat_null} and seed = {args.empirical_null_seed}.''')
         np.random.seed(args.empirical_null_seed)
-        null_weights = np.random.normal(size=(df_weight.shape[0], nrepeat_null))
-        df_weight = pd.concat([ 
-            df_weight, 
-            pd.DataFrame(
-                null_weights, 
-                columns=[ f'null_{i}' for i in range(nrepeat_null) ])],
-            axis=1)
-   
-    idp_names = list(df_weight.columns[4:])
-    nidp = len(idp_names)
-    nsnp_total = (df_weight.iloc[:, 4:].values != 0).sum(axis=0)
+        idp_names += [ f'null_{i}' for i in range(nrepeat_null) ]
+    nperm = nrepeat_perm * nidp
+    nnull = nrepeat_null
      
     logging.info('Harmonizing GWAS and IDP weights.')
     # harmonize GWAS and IDP weight table so that they have the same set of 
@@ -387,10 +464,11 @@ if __name__ == '__main__':
     # 3. run susieR.
     #   3.1 Sigma = D / S_D[:, np.newaxis] / S_D[np.newaxis, :]
     
-    D = np.zeros((nidp, nidp))
-    numer_b = np.zeros((nidp))
-    numer_z = np.zeros((nidp))
-    nsnp_used = np.zeros((nidp)).astype(int)
+    ntotal = nidp + nperm + nnull
+    D = np.zeros((ntotal, ntotal))
+    numer_b = np.zeros((ntotal))
+    numer_z = np.zeros((ntotal))
+    nsnp_used = np.zeros((ntotal)).astype(int)
     for i in range(1, 23):
         
         df_gwas_sub = df_gwas[ df_gwas.chr == str(i) ].reset_index(drop=True)
@@ -414,14 +492,23 @@ if __name__ == '__main__':
         df_weight_sub = rearrage_df_by_target(
             df=df_weight_sub, 
             target=df_cov_meta,
-            df_value_cols=list(df_weight.columns[4:])
+            df_value_cols=list(df_weight.columns[N_GWAS_META_COLS:])
         )
         n1 = df_gwas_sub.effect_size.notna().sum()
         logging.info('Step0 Chromosome {}: {} out of {} SNPs in IDP/GWAS are used.'.format(i, n1, n0))
         
         logging.info(f'Step1 Chromosome {i}: Working with genotype covariance.')
         
-        weight = df_weight_sub.iloc[:, 4 : ].to_numpy(copy=True)
+        weight_all = []
+        weight = df_weight_sub.iloc[:, N_GWAS_META_COLS: ].to_numpy(copy=True)
+        weight_all.append(weight)
+        if args.empirical_null is True:
+            weight_null = simulate_weights(weight, nrepeat_null)
+            weight_all.append(weight)
+        if args.ldblock_perm is not None:
+            weight_perm = permute_weights(weight, df_weight_sub.iloc[: 4], ld_blocks, nrepeat_perm)
+            weight_all.append(weight)
+        weight = np.concatenate(weight_all, axis=1)
         weight[np.isnan(weight)] = 0
         nsnp_used += (weight != 0).sum(axis=0)
         
@@ -463,25 +550,29 @@ if __name__ == '__main__':
     # susie_pip, susie_cs = run_susie_wrapper(z_brainxcan, Sigma, params={'z_ld_weight': args.z_ld_weight})
          
     logging.info('Saving outputs.')
-    offset = -nrepeat_null if args.empirical_null is True else len(idp_names)
     df_res = pd.DataFrame({
-        'IDP': idp_names[: offset],
-        'bhat': beta_brainxcan[: offset],
-        'pval': z2p(z_brainxcan[: offset]),
-        'z_brainxcan': z_brainxcan[: offset],
-        'nsnp_used': nsnp_used[: offset],
-        'nsnp_total': nsnp_total[: offset]
+        'IDP': idp_names[: nidp],
+        'bhat': beta_brainxcan[: nidp],
+        'pval': z2p(z_brainxcan[: nidp]),
+        'z_brainxcan': z_brainxcan[: nidp],
+        'nsnp_used': nsnp_used[: nidp],
+        'nsnp_total': nsnp_total[: nidp]
         # 'pip': susie_pip,
         # 'cs95': susie_cs
     })
     
     if args.empirical_null is True:
-        # df_res['pval_adj_emp'] = z2p(z_adj_emp)
         df_adj = pd.DataFrame({
-            'name': df_weight.columns[-nrepeat_null :], 
-            'value': z_brainxcan[-nrepeat_null :] })
+            'name': idp_names[nidp : (ndip + nnull)], 
+            'value': z_brainxcan[nidp : (ndip + nnull)] })
         df_adj['rand'] = args.empirical_null_seed
         df_adj = df_adj.to_csv(args.output_prefix + '.emp_null.csv', index=False)
+    if args.ldblock_perm is not None:
+        df_adj = pd.DataFrame({
+            'name': idp_names[(ndip + nnull) : (ndip + nnull + nperm)], 
+            'value': z_brainxcan[(ndip + nnull) : (ndip + nnull + nperm)] })
+        df_adj['rand'] = args.ldblock_perm_seed
+        df_adj = df_adj.to_csv(args.output_prefix + '.perm_null.csv', index=False)
             
     df_res = pd.merge(df_res, df_perf, on='IDP', how='left')
     df_res.fillna('NA', inplace=True)
