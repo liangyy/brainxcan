@@ -272,7 +272,7 @@ def _cleanup_ldblock(df):
     df = df[ df.chr.isin([ str(i) for i in range(1, 23) ])]
     df = df.reset_index(drop=True)
     for i in range(1, 23):
-        kk = df[df.chr == str(i)]
+        kk = df[df.chr == str(i)].reset_index(drop=True)
         for j in range(kk.shape[0] - 1):
             if kk.end[j] != kk.start[j + 1]:
                 raise ValueError(f'''
@@ -282,8 +282,9 @@ def _cleanup_ldblock(df):
     return df
 
 def load_ldblock(fn):
-    df = pd.read_csv(fn, sep='\t')
+    df = pd.read_csv(fn, sep='\s+')
     df.chr = [ re.sub('^chr', '', i) for i in df.chr ]
+    df.rename(columns={'stop': 'end'}, inplace=True)
     # BED file use base0
     df.start = df.start.astype(int) + 1
     df.end = df.end.astype(int) + 1
@@ -292,36 +293,41 @@ def load_ldblock(fn):
 
 def get_idxs_by_block(meta, block):
     res = []
-    block_sub = block[block.chr == chrm]
-    meta_w_idx = pd.DataFrame({'chr': meta.chr, 'pos': meta.position, idx: [ i for i in range(meta.shape[0])]})
-    chrm = meta_w_idx.chr[0]
-    meta_i = meta_w_idx[ meta_w_idx.pos < block_sub.start[0] ]
-    if meta_i.shape[0] > 0:
-        res.append(list(meta_i.idx))
-    for i in range(block_sub.shape[0]):
-        meta_i = meta_w_idx[ meta_w_idx.pos < block_sub.end[i] & meta_w_idx.pos >= block_sub.start[i] ]
+    for chrm in range(1, 23):
+        block_sub = block[block.chr == str(chrm)].reset_index(drop=True)
+        if block_sub.shape[0] == 0:
+            continue
+        meta_w_idx = pd.DataFrame({'chr': meta.chr, 'pos': meta.position, 'idx': [ i for i in range(meta.shape[0])]})
+        chrm = meta_w_idx.chr[0]
+        meta_i = meta_w_idx[ meta_w_idx.pos < block_sub.start.values[0] ]
         if meta_i.shape[0] > 0:
             res.append(list(meta_i.idx))
-    meta_i = meta_w_idx[ meta_w_idx.pos >= block_sub.end[0] ]
-    if meta_i.shape[0] > 0:
-        res.append(list(meta_i.idx))
+        for i in range(block_sub.shape[0]):
+            meta_i = meta_w_idx[ (meta_w_idx.pos < block_sub.end.values[i]) & (meta_w_idx.pos >= block_sub.start.values[i]) ]
+            if meta_i.shape[0] > 0:
+                res.append(list(meta_i.idx))
+        meta_i = meta_w_idx[ meta_w_idx.pos >= block_sub.end.values[-1] ]
+        if meta_i.shape[0] > 0:
+            res.append(list(meta_i.idx))
     return res
 
 def simulate_weights(weight, nrepeat):
     null_weight = np.random.normal(size=(weight.shape[0], nrepeat))
-    null_weight[np.isnan(weight)] = np.nan
+    null_weight[np.isnan(weight).sum(axis=1) != 0, :] = np.nan
     return null_weight
 
 def permute_weights(weight, weight_meta, ld_blocks, nrepeat):
     n = weight.shape[1]
+    not_nan = np.isnan(weight).sum(axis=1) == 0
     perm_weight = np.zeros((weight.shape[0], nrepeat * n))
-    idxs_by_block = get_idxs_by_block(weight_meta, ld_blocks)
+    idxs_by_block = get_idxs_by_block(weight_meta.iloc[not_nan, :].reset_index(drop=True), ld_blocks)
     for i in range(nrepeat):
         idxs = []
         block_idxs = np.random.permutation(len(idxs_by_block))
         for j in block_idxs:
             idxs += idxs_by_block[j]
-        perm_weight[:, i * n : (i + 1) * n] = weight[:, idxs]
+        perm_weight[not_nan, i * n : (i + 1) * n] = weight[idxs, :]
+    perm_weight[~not_nan, :] = np.nan
     return perm_weight
         
 if __name__ == '__main__':
@@ -355,12 +361,13 @@ if __name__ == '__main__':
     ''')
     parser.add_argument('--ldblock_perm', default=None, help='''
         If want to obtain adjusted BrainXcan by LD block-based permutation, 
-        use this argument and specific the LD block BED file here. 
+        use this argument and specific the LD block BED file here.
+        IMPORTANT NOTE: Currently, the LD block-based permutation only works 
+        for dense models (e.g. ridge models). 
     ''')
     parser.add_argument('--ldblock_perm_seed', default=1, 
         type=int, help='''
         The random seed when obtaining the LD block-based permutation.
-        IMPORTANT NOTE: Random seed will be over-written by --empirical_null_seed
     ''')
     parser.add_argument('--ldblock_perm_nrepeat', default=10, 
         type=int, help='''
@@ -380,7 +387,8 @@ if __name__ == '__main__':
     ''')
     parser.add_argument('--empirical_null_seed', default=1, 
         type=int, help='''
-        The random seed when obtaining the empirical null
+        The random seed when obtaining the empirical null.
+        IMPORTANT NOTE: Random seed will be over-written by --ldblock_perm_seed
     ''')
     parser.add_argument('--output_prefix', help='''
         The output CSV file prefix.
@@ -421,6 +429,15 @@ if __name__ == '__main__':
     nidp = len(idp_names)
     nsnp_total = (df_weight.iloc[:, N_IDP_META_COLS:].values != 0).sum(axis=0)
     logging.info('IDP SNP = {} and number of IDPs = {}'.format(df_weight.shape[0], nidp))
+   
+    nrepeat_null = 0
+    if args.empirical_null is True:
+        nrepeat_null = args.empirical_null_nrepeat
+        logging.info(f'''
+            Generating IDP weights for the empirical null:
+            nrepeat = {nrepeat_null} and seed = {args.empirical_null_seed}.''')
+        np.random.seed(args.empirical_null_seed)
+        idp_names += [ f'null_{i}' for i in range(nrepeat_null) ]
     
     nrepeat_perm = 0
     if args.ldblock_perm is not None:
@@ -432,14 +449,6 @@ if __name__ == '__main__':
         ld_blocks = load_ldblock(args.ldblock_perm)
         idp_names += [ f'perm{j}_idp{k}' for j in range(nrepeat_perm) for k in range(nidp) ]
     
-    nrepeat_null = 0
-    if args.empirical_null is True:
-        nrepeat_null = args.empirical_null_nrepeat
-        logging.info(f'''
-            Generating IDP weights for the empirical null: 
-            nrepeat = {nrepeat_null} and seed = {args.empirical_null_seed}.''')
-        np.random.seed(args.empirical_null_seed)
-        idp_names += [ f'null_{i}' for i in range(nrepeat_null) ]
     nperm = nrepeat_perm * nidp
     nnull = nrepeat_null
      
@@ -504,10 +513,13 @@ if __name__ == '__main__':
         weight_all.append(weight)
         if args.empirical_null is True:
             weight_null = simulate_weights(weight, nrepeat_null)
-            weight_all.append(weight)
+            weight_all.append(weight_null)
         if args.ldblock_perm is not None:
-            weight_perm = permute_weights(weight, df_weight_sub.iloc[: 4], ld_blocks, nrepeat_perm)
-            weight_all.append(weight)
+            weight_perm = permute_weights(
+                weight, df_weight_sub.iloc[:, :N_GWAS_META_COLS], 
+                ld_blocks[ld_blocks.chr == str(i)].reset_index(drop=True), 
+                nrepeat_perm)
+            weight_all.append(weight_perm)
         weight = np.concatenate(weight_all, axis=1)
         weight[np.isnan(weight)] = 0
         nsnp_used += (weight != 0).sum(axis=0)
@@ -563,14 +575,14 @@ if __name__ == '__main__':
     
     if args.empirical_null is True:
         df_adj = pd.DataFrame({
-            'name': idp_names[nidp : (ndip + nnull)], 
-            'value': z_brainxcan[nidp : (ndip + nnull)] })
+            'name': idp_names[nidp : (nidp + nnull)], 
+            'value': z_brainxcan[nidp : (nidp + nnull)] })
         df_adj['rand'] = args.empirical_null_seed
         df_adj = df_adj.to_csv(args.output_prefix + '.emp_null.csv', index=False)
     if args.ldblock_perm is not None:
         df_adj = pd.DataFrame({
-            'name': idp_names[(ndip + nnull) : (ndip + nnull + nperm)], 
-            'value': z_brainxcan[(ndip + nnull) : (ndip + nnull + nperm)] })
+            'name': idp_names[(nidp + nnull) : (nidp + nnull + nperm)], 
+            'value': z_brainxcan[(nidp + nnull) : (nidp + nnull + nperm)] })
         df_adj['rand'] = args.ldblock_perm_seed
         df_adj = df_adj.to_csv(args.output_prefix + '.perm_null.csv', index=False)
             
