@@ -301,6 +301,6 @@ def fill_bxcan_permz_args(config):
     else:
         res = ' '.join([
             '--ldblock_perm {}'.format(config['bxcan_ldblock_perm']), 
-            '--ldblock_perm_seed {}'.format(config['bxcan_empirical_z_seed']), 
-            '--ldblock_perm_nrepeat {}'.format(config['bxcan_empirical_z_nrepeat'])])
+            '--ldblock_perm_seed {}'.format(config['bxcan_ldblock_perm_seed']), 
+            '--ldblock_perm_nrepeat {}'.format(config['bxcan_ldblock_perm_nrepeat'])])
     return res
