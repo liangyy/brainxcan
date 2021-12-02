@@ -293,22 +293,25 @@ def load_ldblock(fn):
 
 def get_idxs_by_block(meta, block):
     res = []
-    for chrm in range(1, 23):
-        block_sub = block[block.chr == str(chrm)].reset_index(drop=True)
-        if block_sub.shape[0] == 0:
-            continue
-        meta_w_idx = pd.DataFrame({'chr': meta.chr, 'pos': meta.position, 'idx': [ i for i in range(meta.shape[0])]})
-        chrm = meta_w_idx.chr[0]
-        meta_i = meta_w_idx[ meta_w_idx.pos < block_sub.start.values[0] ]
+    if len(list(meta.chr.unique())) > 1:
+        raise ValueError('There are more than one chromosome in meta. Exit!')
+    chrm = meta.chr[0]
+    # for chrm in range(1, 23):
+    block_sub = block[block.chr == str(chrm)].reset_index(drop=True)
+    if block_sub.shape[0] == 0:
+        continue
+    meta_w_idx = pd.DataFrame({'chr': meta.chr, 'pos': meta.position, 'idx': [ i for i in range(meta.shape[0])]})
+    chrm = meta_w_idx.chr[0]
+    meta_i = meta_w_idx[ meta_w_idx.pos < block_sub.start.values[0] ]
+    if meta_i.shape[0] > 0:
+        res.append(list(meta_i.idx))
+    for i in range(block_sub.shape[0]):
+        meta_i = meta_w_idx[ (meta_w_idx.pos < block_sub.end.values[i]) & (meta_w_idx.pos >= block_sub.start.values[i]) ]
         if meta_i.shape[0] > 0:
             res.append(list(meta_i.idx))
-        for i in range(block_sub.shape[0]):
-            meta_i = meta_w_idx[ (meta_w_idx.pos < block_sub.end.values[i]) & (meta_w_idx.pos >= block_sub.start.values[i]) ]
-            if meta_i.shape[0] > 0:
-                res.append(list(meta_i.idx))
-        meta_i = meta_w_idx[ meta_w_idx.pos >= block_sub.end.values[-1] ]
-        if meta_i.shape[0] > 0:
-            res.append(list(meta_i.idx))
+    meta_i = meta_w_idx[ meta_w_idx.pos >= block_sub.end.values[-1] ]
+    if meta_i.shape[0] > 0:
+        res.append(list(meta_i.idx))
     return res
 
 def simulate_weights(weight, nrepeat):
