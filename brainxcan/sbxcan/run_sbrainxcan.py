@@ -299,7 +299,7 @@ def get_idxs_by_block(meta, block):
     # for chrm in range(1, 23):
     block_sub = block[block.chr == str(chrm)].reset_index(drop=True)
     if block_sub.shape[0] == 0:
-        continue
+        raise ValueError('No desired chromosome in LD block')
     meta_w_idx = pd.DataFrame({'chr': meta.chr, 'pos': meta.position, 'idx': [ i for i in range(meta.shape[0])]})
     chrm = meta_w_idx.chr[0]
     meta_i = meta_w_idx[ meta_w_idx.pos < block_sub.start.values[0] ]
