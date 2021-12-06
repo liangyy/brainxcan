@@ -282,7 +282,7 @@ def fill_permz(config):
     sh._try_fill_config(config, 'bxcan_ldblock_perm_seed', default_params.BXCAN_LDBLOCK_PERM_SEED)
     sh._try_fill_config(config, 'bxcan_ldblock_perm_nrepeat', default_params.BXCAN_LDBLOCK_PERM_NREPEAT)
     if config['model_type'] is 'elastic_net' and config['bxcan_ldblock_perm'] is not None:
-        'WARNING: since model_type = elastic_net, we disable LD block based permutation calculation in BrainXcan'
+        print('WARNING: since model_type = elastic_net, we disable LD block based permutation calculation in BrainXcan. Shut down this check by setting bxcan_ldblock_perm_elastic_net=true')
         config['bxcan_ldblock_perm'] = None
 
 def fill_bxcan_empz_args(config):
