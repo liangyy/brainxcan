@@ -184,9 +184,9 @@ def get_snpid_col(gwas_args_list):
 
 def impute_b_from_z(zscore, af, n):
     if (n < 0).sum() > 0:
-        raise ValueError('There are sample size < 0')
+        print('Warning: There are sample size < 0. These variants will be discarded')
     if (af >= 1).sum() or (af <= 0).sum():
-        raise ValueError('There are af outside (0, 1).')
+        print('Warning: There are af outside (0, 1). These variants will be discarded')
     se = 1 / np.sqrt(2 * n * af * (1 - af))
     bhat = zscore * se
     return bhat, se
@@ -207,9 +207,11 @@ def load_gwas(gwas_args_list):
     # fn = gwas_args_list[0]
     fn, rename_dict = _parse_args(gwas_args_list, desired_cols=None)
     df = read_table(fn, indiv_col=snpid_col)
-    if get_key_by_val('effect_size', rename_dict) is not None and 'effect_size' in df.columns:
+    k_effect_size = get_key_by_val('effect_size', rename_dict)
+    k_zscore = get_key_by_val('zscore', rename_dict)
+    if k_effect_size is not None and k_effect_size in df.columns:
         _, rename_dict, snpid_col = _parse_gwas_args(gwas_args_list, mode='effect_size')
-    elif get_key_by_val('zscore', rename_dict) is not None and 'zscore' in df.columns:
+    elif k_zscore is not None and k_zscore in df.columns:
         _, rename_dict, snpid_col = _parse_gwas_args(gwas_args_list, mode='zscore')
     else:
         raise ValueError('We need either effect_size or zscore in GWAS file.')
