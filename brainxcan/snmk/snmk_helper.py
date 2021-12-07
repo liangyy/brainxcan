@@ -31,6 +31,7 @@ def fill_gwas_col_meta(config):
     zscore: 'zscore'
     sample_size: 'sample_size'
     allele_frequency: 'frequency'
+    position: 'pos' (optional)
     '''
     key_map_to_mr = {
         'snpid': 'variant_id',
@@ -38,6 +39,8 @@ def fill_gwas_col_meta(config):
         'allele_frequency': 'af'
     }
     main_cols = ['snpid', 'effect_allele', 'non_effect_allele', 'chr']
+    if config['bxcan_ldblock_perm'] is not None:
+        main_cols.append('position')
     desired_cols_b = [ 
         'effect_size', 'effect_size_se'
     ]
