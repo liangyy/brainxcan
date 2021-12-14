@@ -252,7 +252,7 @@ def load_idp(args_list, spearman_cutoff=0.1):
     perf_cols = ['R2', 'Pearson', 'Spearman']
     df_perf.rename(columns={ k : f'CV_{k}' for k in perf_cols }, inplace=True)
     df_perf = df_perf[ df_perf.CV_Spearman >= spearman_cutoff ].reset_index(drop=True)
-    cols_to_keep = list(df.columns[:4]) + list(df_perf.IDP)
+    cols_to_keep = list(df.columns[:N_IDP_META_COLS]) + list(df_perf.IDP)
     df = df[ cols_to_keep ].copy()
     df = df[ df.iloc[:, N_IDP_META_COLS:].values.sum(axis=1) != 0 ].reset_index(drop=True)
     return df, df_perf
