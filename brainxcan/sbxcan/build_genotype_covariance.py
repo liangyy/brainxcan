@@ -14,6 +14,9 @@ def load_mode(mode_list):
             param = int(mode_list[1])
         elif mode_list[0] == 'banded':
             param = float(mode_list[1])
+        elif mode_list[0] == 'evd':
+            param = float(mode_list[1])
+            ext = 'evd.npz'
         elif mode_list[0] == 'naive':
             if mode_list[1] == 'f32':
                 param = np.float32
