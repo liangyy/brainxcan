@@ -14,6 +14,9 @@ if __name__ == '__main__':
         If there are more than max_idps number of IDPs passing 
         the criteria, the top max_idps will be output.
     ''')
+    parser.add_argument('--pval_col', default='pval', help='''
+        The name of the p-value column to be used.
+    ''')
     parser.add_argument('--outdir', help='''
         Output directory
     ''')
@@ -33,10 +36,10 @@ if __name__ == '__main__':
     df = pd.read_csv(args.sbxcan)
     logging.info('{} IDPs in total.'.format(df.shape[0]))
     
-    logging.info('Applying criteria: p-value cutoff = {}.'.format(args.pval))
+    logging.info('Applying criteria: p-value cutoff = {} and pval column = {}'.format(args.pval, args.pval_col))
     df = (
-        df[ df.pval < args.pval ]
-            .sort_values(by='pval', ascending=True)
+        df[ df[args.pval_col] < args.pval ]
+            .sort_values(by=args.pval_col, ascending=True)
             .reset_index(drop=True)
     )
     logging.info('{} IDPs pass the criteria.'.format(df.shape[0]))
@@ -44,8 +47,8 @@ if __name__ == '__main__':
     if df.shape[0] > args.max_idps:
         logging.info('Taking top {} IDPs.'.format(args.max_idps))
         # keep all ties 
-        pval_last_to_select = df.iloc[:args.max_idps, :].pval.values[-1]
-        df = df[ df.pval <= pval_last_to_select ].reset_index(drop=True)
+        pval_last_to_select = df.iloc[:args.max_idps, :][args.pval_col].values[-1]
+        df = df[ df[args.pval_col] <= pval_last_to_select ].reset_index(drop=True)
         logging.info(
             'Select {} IDPs with p-value <= {}'.format(
                 df.shape[0], pval_last_to_select

@@ -11,7 +11,10 @@ option_list <- list(
                 help="Meta data directory",
                 metavar="character"),
     make_option(c("-r", "--region_vis"), action="store_true",
-              help="Also generate interactive region htmls along the way")
+              help="Also generate interactive region htmls along the way"),
+    make_option(c("-k", "--pval_col"), type="character", default=NULL,
+                help="The name of the p-value column to be used in BrainXcan results.",
+                metavar="character")
 )
 
 opt_parser <- OptionParser(option_list=option_list)
@@ -30,8 +33,9 @@ options(stringsAsFactors = F)
 meta_list = readRDS(paste0(opt$datadir, '/meta_plot.rds'))
 tags = names(meta_list)
 
-logging::loginfo('Loading BrainXcan results.')
-df = read.csv(opt$brainxcan) %>% mutate(zscore = p2z(pval, bhat))
+logging::loginfo(paste0('Loading BrainXcan results. pval_col = ', opt$pval_col))
+df = read.csv(opt$brainxcan)
+df$zscore = p2z(df[[opt$pval_col]], bhat)
 
 logging::loginfo('Plotting for all tags.')
 p = list(T1 = list(), dMRI = list()) 

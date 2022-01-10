@@ -307,3 +307,16 @@ def fill_bxcan_permz_args(config):
             '--ldblock_perm_seed {}'.format(config['bxcan_ldblock_perm_seed']), 
             '--ldblock_perm_nrepeat {}'.format(config['bxcan_ldblock_perm_nrepeat'])])
     return res
+
+def fill_pval_col(config):
+    if config['bxcan_empirical_z'] is False and config['bxcan_ldblock_perm'] is None:
+        config['pval_col'] = 'pval'
+    elif config['bxcan_ldblock_perm'] is not None and config['bxcan_empirical_z'] is False:
+        config['pval_col'] = 'pval_adj_perm_null'
+    elif config['bxcan_ldblock_perm'] is None and config['bxcan_empirical_z'] is not False:
+        config['pval_col'] = 'pval_adj_emp_null'
+    else:
+        if 'pval_col' in config and 'pval_col' in ['pval', 'pval_adj_emp_null', 'pval_adj_emp_null']:
+            pass
+        else:
+            config['pval_col'] = 'pval_adj_perm_null' 

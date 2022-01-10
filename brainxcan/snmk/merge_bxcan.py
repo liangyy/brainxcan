@@ -25,6 +25,7 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(prog='merge_bxcan.py', description='''
         Merge BrainXcan results from dMRI and T1.
+        Add p-values with adjustment if applicable.
     ''')
     parser.add_argument('--dmri', help='''
         Input S-BrainXcan result for dMRI IDPs.
@@ -37,6 +38,9 @@ if __name__ == '__main__':
     ''')
     parser.add_argument('--output_prefix', help='''
         Output CSV table prefix.
+    ''')
+    parser.add_argument('--pval_col', default='pval', help='''
+        The name of the p-value column to be used.
     ''')
     args = parser.parse_args()
     
@@ -85,6 +89,6 @@ if __name__ == '__main__':
     logging.info('Saving outputs.')
     df = pd.merge(df, meta.drop(columns=['t1_or_dmri', 'ukb_link']), on='IDP', how='left')
     df.fillna('NA', inplace=True)
-    df.sort_values(by='pval').to_csv(args.output_prefix + '.csv', index=False)
+    df.sort_values(by=args.pval_col).to_csv(args.output_prefix + '.csv', index=False)
     
     logging.info('Done.')

@@ -24,6 +24,9 @@ option_list <- list(
                 metavar="character"),
     make_option(c("-o", "--output_html"), type="character", default=NULL,
                 help="Output HTML filename",
+                metavar="character"),
+    make_option(c("-k", "--bxcan_pval_col"), type="character", default=NULL,
+                help="The name of the p-value column to be used in BrainXcan results.",
                 metavar="character")
 )
 
@@ -35,7 +38,8 @@ params = list(
   input_prefix = opt$input_prefix,
   rlib = opt$rlib,
   phenotype_name = opt$phenotype_name,
-  ntop = opt$ntop
+  ntop = opt$ntop,
+  bxcan_pval_col = opt$bxcan_pval_col
 )
 
 rmarkdown::render(

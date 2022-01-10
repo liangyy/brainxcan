@@ -13,6 +13,7 @@ params:
   input_prefix: NA
   rlib: NA
   ntop: 10
+  bxcan_pval_col: 'pval'
 title: "`r paste0('BrainXcan results for ', params$phenotype_name)`"
 ---
 
@@ -35,6 +36,12 @@ meta_file = params$meta_file
 color_code_yaml = params$color_code_yaml
 phenotype_name = params$phenotype_name
 ntop = params$ntop
+bxcan_pval_col = params$bxcan_pval_col
+pval_col_to_name = list(
+  pval = 'raw p-values from BrainXcan',
+  pval_adj_emp_null = 'adjusted p-values based on simulated weights',
+  pval_adj_permz_null = 'adjusted p-values based on permuted weights'
+)
 ```
 
 ```{r load_meta}
@@ -44,8 +51,7 @@ color_map = load_color_code_yaml(color_code_yaml)
 
 ```{r load_results}
 bxcan_file = paste0(input_prefix, '.sbrainxcan.csv')
-sbxcan = read.csv(bxcan_file)
-sbxcan$zscore = abs( qnorm(sbxcan$pval/2) ) * sign(sbxcan$bhat)
+sbxcan = read.csv(bxcan_file) %>% mutate(zscore = abs( qnorm(!!sym(bxcan_pval_col)/2) ) * sign(sbxcan$bhat))
 allxcan = sbxcan
 ```
 
@@ -82,7 +88,9 @@ In below, we show the overall number of IDP by IDP subtype in the main results.
 xcandf %>% count(subtype) %>% pander::pander()
 ```
 
-Among `r n_pred_idps` IDPs (`r sum(xcandf$modality=="T1")` T1 and `r sum(xcandf$modality=="T1")` diffusion MRI, including the subtype-specific PCs), `r sum(xcandf$pval < p_thres)` were significantly associated with `r phenotype_name` (pval < $`r signif(p_thres, 3)`$ = 0.05 / `r n_pred_idps`). 
+The p-value being used is `r pval_col_to_name[[bxcan_pval_col]]`.
+
+Among `r n_pred_idps` IDPs (`r sum(xcandf$modality=="T1")` T1 and `r sum(xcandf$modality=="T1")` diffusion MRI, including the subtype-specific PCs), `r sum(xcandf[[bxcan_pval_col]] < p_thres)` were significantly associated with `r phenotype_name` (pval < $`r signif(p_thres, 3)`$ = 0.05 / `r n_pred_idps`). 
 
 ```{r, vis_t1, fig.height=7, fig.width=8}
 idp_type = 'T1'
@@ -113,7 +121,7 @@ if(!is.null(df_mr)) {
 The top `r ntop` associations for dMRI are 
 ```{r dmri_top_n, results='asis'}
 if(!is.null(df_mr)) {
-  xcandf_w_mr %>% select(IDP, modality, subtype, region, side, zscore, pval, `IDP -> Phenotype`, `Phenotype -> IDP`, link) %>% filter(pval < p_thres) %>% filter(modality=="dMRI") %>% arrange(pval) %>% select(-modality) %>% head(ntop) %>% pander
+  xcandf_w_mr %>% select(IDP, modality, subtype, region, side, zscore, !!sym(bxcan_pval_col), `IDP -> Phenotype`, `Phenotype -> IDP`, link) %>% filter(!!sym(bxcan_pval_col) < p_thres) %>% filter(modality=="dMRI") %>% arrange(!!sym(bxcan_pval_col)) %>% select(-modality) %>% head(ntop) %>% pander
 } else {
   cat('not shown since no significant IDP being identified (pass p-value cutoff).\n\n')
 }
@@ -122,7 +130,7 @@ if(!is.null(df_mr)) {
 The top `r ntop` associations for T1 are 
 ```{r t1_top_n, results='asis'}
 if(!is.null(df_mr)) {
-  xcandf_w_mr %>% select(IDP, modality, subtype, region, side, zscore, pval, `IDP -> Phenotype`, `Phenotype -> IDP`, link) %>% filter(pval < p_thres) %>% filter(modality == "T1") %>% arrange(pval) %>% select(-modality) %>% head(ntop) %>% pander
+  xcandf_w_mr %>% select(IDP, modality, subtype, region, side, zscore, !!sym(bxcan_pval_col), `IDP -> Phenotype`, `Phenotype -> IDP`, link) %>% filter(!!sym(bxcan_pval_col) < p_thres) %>% filter(modality == "T1") %>% arrange(!!sym(bxcan_pval_col)) %>% select(-modality) %>% head(ntop) %>% pander
 } else {
   cat('not shown since no significant IDP being identified (pass p-value cutoff).\n\n')
 }

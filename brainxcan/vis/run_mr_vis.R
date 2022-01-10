@@ -12,6 +12,9 @@ option_list <- list(
                 metavar="character"),
     make_option(c("-t", "--output_table"), type="character", default=NULL,
                 help="Output MR table.",
+                metavar="character"),
+    make_option(c("-k", "--bxcan_pval_col"), type="character", default=NULL,
+                help="The name of the p-value column to be used in BrainXcan results.",
                 metavar="character")
 )
 
@@ -56,9 +59,11 @@ df_mr = rbind(
   mr_res$pheno2idp$mr %>% filter(method %in% mr_methods) %>% mutate(direction = 'Phenotype -> IDP') 
 ) %>% select(direction, method, nsnp, b, pval)
 bxcan = bxcan %>% mutate(direction = NA, method = 'BrainXcan') %>% rename(nsnp = nsnp_used, b = bhat)
+bxcan = bxcan[, c("direction", "method", "nsnp", "b", opt$bxcan_pval_col)]
+colnames(bxcan)[5] = 'pval'
 df_res = rbind(
   df_mr, 
-  bxcan %>% select(direction, method, nsnp, b, pval)
+  bxcan
 )
 
 # add ACAT based meta-analysis to combine MR tests
