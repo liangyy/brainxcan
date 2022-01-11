@@ -51,7 +51,7 @@ color_map = load_color_code_yaml(color_code_yaml)
 
 ```{r load_results}
 bxcan_file = paste0(input_prefix, '.sbrainxcan.csv')
-sbxcan = read.csv(bxcan_file) %>% mutate(zscore = abs( qnorm(!!sym(bxcan_pval_col)/2) ) * sign(sbxcan$bhat))
+sbxcan = read.csv(bxcan_file) %>% mutate(zscore = abs( qnorm(!!sym(bxcan_pval_col)/2) ) * sign(bhat))
 allxcan = sbxcan
 ```
 
