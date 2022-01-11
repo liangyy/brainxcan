@@ -78,7 +78,7 @@ In this analysis, we tested `r nrow(allxcan)` structural and diffusion MRI-deriv
 ## define number of total tests per phenotype to be used for bonferroni correction
 n_pred_idps = length(unique(xcandf$IDP))
 p_thres = 0.05 / n_pred_idps
-z_thres = abs(qnorm(p_thres))
+z_thres = abs(qnorm(p_thres / 2))
 ```
 
 For the main analysis we focused on `r n_pred_idps` IDPs, which include `r sum(xcandf$subtype == 'Gray-Cortical')` cortical volumes, `r sum(xcandf$subtype == 'Subcortical')` sub-cortical volumes, `r sum(xcandf$subtype == 'Gray-Subcortical')` sub-cortical gray matter volumes.
