@@ -34,8 +34,7 @@ meta_list = readRDS(paste0(opt$datadir, '/meta_plot.rds'))
 tags = names(meta_list)
 
 logging::loginfo(paste0('Loading BrainXcan results. pval_col = ', opt$pval_col))
-df = read.csv(opt$brainxcan)
-df$zscore = p2z(df[[opt$pval_col]], bhat)
+df = read.csv(opt$brainxcan) %>% mutate(zscore = p2z(!!sym(opt$pval_col), bhat))
 
 logging::loginfo('Plotting for all tags.')
 p = list(T1 = list(), dMRI = list()) 
