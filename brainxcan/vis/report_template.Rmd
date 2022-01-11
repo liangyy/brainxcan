@@ -88,9 +88,9 @@ In below, we show the overall number of IDP by IDP subtype in the main results.
 xcandf %>% count(subtype) %>% pander::pander()
 ```
 
-The p-value being used is `r pval_col_to_name[[bxcan_pval_col]]`.
+The p-value being used is `r message(pval_col_to_name[[bxcan_pval_col]])`.
 
-Among `r n_pred_idps` IDPs (`r sum(xcandf$modality=="T1")` T1 and `r sum(xcandf$modality=="T1")` diffusion MRI, including the subtype-specific PCs), `r sum(xcandf[[bxcan_pval_col]] < p_thres)` were significantly associated with `r phenotype_name` (pval < $`r signif(p_thres, 3)`$ = 0.05 / `r n_pred_idps`). 
+Among `r n_pred_idps` IDPs (`r sum(xcandf$modality=="T1")` T1 and `r sum(xcandf$modality=="dMRI")` diffusion MRI, including the subtype-specific PCs), `r sum(xcandf[[bxcan_pval_col]] < p_thres)` were significantly associated with `r phenotype_name` (pval < $`r signif(p_thres, 3)`$ = 0.05 / `r n_pred_idps`). 
 
 ```{r, vis_t1, fig.height=7, fig.width=8}
 idp_type = 'T1'
