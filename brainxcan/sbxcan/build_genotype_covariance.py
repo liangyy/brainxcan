@@ -3,7 +3,7 @@ from util.CovConstructor import CovConstructor
 import numpy as np
 
 def load_mode(mode_list):
-    if mode_list[0] not in ['naive', 'cap', 'banded']:
+    if mode_list[0] not in ['naive', 'cap', 'banded', 'evd']:
         raise ValueError('Wrong mode.')
     else:
         if mode_list[0] in ['naive', 'cap']:
